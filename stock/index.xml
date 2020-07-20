@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Stocks on Dive into nexus of everything</title>
-    <link>./stock/</link>
+    <link>https://nexusal.github.io/stock/</link>
     <description>Recent content in Stocks on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 13 Jul 2020 16:00:00 +0800</lastBuildDate>
     
-	<atom:link href="./stock/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://nexusal.github.io/stock/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>cash flow  of four prominent companies(original data filter by lin le)</title>
-      <link>./stock/stock/</link>
+      <link>https://nexusal.github.io/stock/stock/</link>
       <pubDate>Mon, 13 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./stock/stock/</guid>
+      <guid>https://nexusal.github.io/stock/stock/</guid>
       <description>this is our stocks: 603977,国泰集团
 002669,康达新材
 603601,再升科技

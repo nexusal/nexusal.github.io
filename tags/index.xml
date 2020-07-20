@@ -2,84 +2,84 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Dive into nexus of everything</title>
-    <link>./tags/</link>
+    <link>https://nexusal.github.io/tags/</link>
     <description>Recent content in Tags on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 19 Jul 2020 16:00:00 +0800</lastBuildDate>
     
-	<atom:link href="./tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://nexusal.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>data science</title>
-      <link>./tags/data-science/</link>
+      <link>https://nexusal.github.io/tags/data-science/</link>
       <pubDate>Sun, 19 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/data-science/</guid>
+      <guid>https://nexusal.github.io/tags/data-science/</guid>
       <description></description>
     </item>
     
     <item>
       <title>NLP</title>
-      <link>./tags/nlp/</link>
+      <link>https://nexusal.github.io/tags/nlp/</link>
       <pubDate>Sun, 19 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/nlp/</guid>
+      <guid>https://nexusal.github.io/tags/nlp/</guid>
       <description></description>
     </item>
     
     <item>
       <title>text mining</title>
-      <link>./tags/text-mining/</link>
+      <link>https://nexusal.github.io/tags/text-mining/</link>
       <pubDate>Sun, 19 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/text-mining/</guid>
+      <guid>https://nexusal.github.io/tags/text-mining/</guid>
       <description></description>
     </item>
     
     <item>
       <title>recording</title>
-      <link>./tags/recording/</link>
+      <link>https://nexusal.github.io/tags/recording/</link>
       <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/recording/</guid>
+      <guid>https://nexusal.github.io/tags/recording/</guid>
       <description></description>
     </item>
     
     <item>
       <title>reference</title>
-      <link>./tags/reference/</link>
+      <link>https://nexusal.github.io/tags/reference/</link>
       <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/reference/</guid>
+      <guid>https://nexusal.github.io/tags/reference/</guid>
       <description></description>
     </item>
     
     <item>
       <title>stock</title>
-      <link>./tags/stock/</link>
+      <link>https://nexusal.github.io/tags/stock/</link>
       <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/stock/</guid>
+      <guid>https://nexusal.github.io/tags/stock/</guid>
       <description></description>
     </item>
     
     <item>
       <title>web scraping</title>
-      <link>./tags/web-scraping/</link>
+      <link>https://nexusal.github.io/tags/web-scraping/</link>
       <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./tags/web-scraping/</guid>
+      <guid>https://nexusal.github.io/tags/web-scraping/</guid>
       <description></description>
     </item>
     
     <item>
       <title>visualization</title>
-      <link>./tags/visualization/</link>
+      <link>https://nexusal.github.io/tags/visualization/</link>
       <pubDate>Tue, 14 Jul 2020 09:30:00 +0800</pubDate>
       
-      <guid>./tags/visualization/</guid>
+      <guid>https://nexusal.github.io/tags/visualization/</guid>
       <description></description>
     </item>
     

@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>reference on Dive into nexus of everything</title>
-    <link>./tags/reference/</link>
+    <link>https://nexusal.github.io/tags/reference/</link>
     <description>Recent content in reference on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 18 Jul 2020 16:00:00 +0800</lastBuildDate>
     
-	<atom:link href="./tags/reference/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://nexusal.github.io/tags/reference/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>downloading annual report of companies in china</title>
-      <link>./web-crawl/scrape/</link>
+      <link>https://nexusal.github.io/web-crawl/scrape/</link>
       <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./web-crawl/scrape/</guid>
+      <guid>https://nexusal.github.io/web-crawl/scrape/</guid>
       <description>library(RSelenium) library(Rwebdriver) library(dplyr) check_handle &amp;lt;- FALSE count &amp;lt;- 0 while(!check_handle || count &amp;gt; 20){ count &amp;lt;- count + 1 windows_handles &amp;lt;- remDr$getWindowHandles() if(length(windows_handles) &amp;lt; 2){ Sys.sleep(1) }else{ check_handle &amp;lt;- TRUE } remDr &amp;lt;-remoteDriver( browserName = &amp;#34;chrome&amp;#34;, remoteServerAddr = &amp;#34;localhost&amp;#34;, port = 4444L) remDr$open() url &amp;lt;-&amp;#34;http://www.cninfo.com.cn/new/index&amp;#34; remDr$navigate(url) library(rvest) webpage &amp;lt;- ead_html(remDr$getPageSource()[[1]][1]) remDr$quit() lirun &amp;lt;- remDr$findElement(using = &amp;#34;css selector&amp;#34;, value = &amp;#34;#common_top_input_obj&amp;#34;) remDr$mouseMoveToLocation(webElement = lirun) lirun$clickElement() remDr$click() webpage &amp;lt;- read_html(remDr$getPageSource()[[1]][1]) nianfen &amp;lt;- remDr$findElement(using = &amp;#34;css selector&amp;#34;, value = &amp;#34;#mainSelect&amp;#34;) nianfen$clickElement() remDr$mouseMoveToLocation(webElement = nianfen) remDr$mouseMoveToLocation(x= 0, y = 500 ,webElement = nianfen) niandu &amp;lt;- remDr$findElement(using = &amp;#34;partial link text&amp;#34;, value = &amp;#34;&amp;#34;) remDr$getWindowPosition(windowId = &amp;#34;current&amp;#34;) remDr$getWindowSize() remDr$getActiveElement() remDr$mouseMoveToLocation(webElement = nianfen) remDr$click(buttonId = 0) remDr$mouseMoveToLocation(x = 0 , y =500) remDr$mouseMoveToLocation(x = 0 , y =30) remDr$click(buttonId = 0) niandu &amp;lt;- remDr$findElement(using = &amp;#34;link text&amp;#34;, value = &amp;#34;&amp;#34;) niandu$clickElement() remDr$mouseMoveToLocation(webElement = niandu) huzhuban &amp;lt;- remDr$findElement(using = &amp;#34;partial link text&amp;#34;, value = &amp;#34;&amp;#34;) remDr$mouseMoveToLocation(webElement = huzhuban) shuru &amp;lt;- remDr$findElement(using = &amp;#34;css selector&amp;#34;, value = &amp;#34;#common_top_input_obj&amp;#34;) wenben &amp;lt;- list(&amp;#34;&amp;#34;, key = &amp;#34;enter&amp;#34;) shuru$sendKeysToElement(wenben) ###code 是股票代码 for (i in 70:3761) { code[[i]] &amp;lt;- paste0(paste0(rep(&amp;#34;0&amp;#34;,6 - nchar(all[i])),collapse = &amp;#34;&amp;#34;),all[i],collapse = &amp;#34;&amp;#34;) } ###########################  remDr$open() url &amp;lt;-&amp;#34;http://www.</description>
     </item>
     

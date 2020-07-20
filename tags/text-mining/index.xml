@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>text mining on Dive into nexus of everything</title>
-    <link>./tags/text-mining/</link>
+    <link>https://nexusal.github.io/tags/text-mining/</link>
     <description>Recent content in text mining on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 19 Jul 2020 16:00:00 +0800</lastBuildDate>
     
-	<atom:link href="./tags/text-mining/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://nexusal.github.io/tags/text-mining/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>ted</title>
-      <link>./nlp/ted/</link>
+      <link>https://nexusal.github.io/nlp/ted/</link>
       <pubDate>Sun, 19 Jul 2020 16:00:00 +0800</pubDate>
       
-      <guid>./nlp/ted/</guid>
+      <guid>https://nexusal.github.io/nlp/ted/</guid>
       <description>recommend that you can open the pictures of this page in another window for more details original data library(tidyverse) library(jsonlite) library(tm) library(tidytext) library(wordcloud) library(gutenbergr) library(textdata) library(igraph) library(ggraph) library(widyr) library(topicmodels) main &amp;lt;- read.csv(&amp;#34;ted_main.csv&amp;#34;) related &amp;lt;- main$related_talks[1] %&amp;gt;% gsub(pattern = &amp;#34;&amp;#39;&amp;#34;,replacement = &amp;#34;\&amp;#34;&amp;#34;) %&amp;gt;% gsub(pattern = &amp;#34;\&amp;#34;s&amp;#34;,replacement = &amp;#34;&amp;#39;s&amp;#34;) %&amp;gt;% gsub(pattern = &amp;#34;\\s&amp;#39;s&amp;#34;,replacement = &amp;#34; \&amp;#34;s&amp;#34;) %&amp;gt;% fromJSON() tags &amp;lt;- main$tags[1] %&amp;gt;% str_extract_all(pattern = &amp;#34;\\w+&amp;#34;) %&amp;gt;% unlist() load the stopwords of english my_stop &amp;lt;- readLines(&amp;#34;english.</description>
     </item>
     
