@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Dive into nexus of everything</title>
+    <link>./tags/</link>
+    <description>Recent content in Tags on Dive into nexus of everything</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 18 Jul 2020 16:00:00 +0800</lastBuildDate>
+    
+	<atom:link href="./tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>recording</title>
+      <link>./tags/recording/</link>
+      <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./tags/recording/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>reference</title>
+      <link>./tags/reference/</link>
+      <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./tags/reference/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>stock</title>
+      <link>./tags/stock/</link>
+      <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./tags/stock/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>web scraping</title>
+      <link>./tags/web-scraping/</link>
+      <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./tags/web-scraping/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

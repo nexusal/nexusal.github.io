@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>downloading annual report of companies in china &middot; Dive into nexus of everything</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="./css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="./css/poole.css">
+  <link type="text/css" rel="stylesheet" href="./css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="./css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="./"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="./">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>downloading annual report of companies in china</h1>
+  <time datetime=2020-07-18T16:00:00&#43;0800 class="post-date">Sat, Jul 18, 2020</time>
+  <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(RSelenium)
+<span style="color:#a6e22e">library</span>(Rwebdriver)
+<span style="color:#a6e22e">library</span>(dplyr)
+
+
+check_handle <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">FALSE</span>
+count <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0</span>
+<span style="color:#a6e22e">while</span>(<span style="color:#f92672">!</span>check_handle <span style="color:#f92672">||</span> count <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">20</span>){
+  count <span style="color:#f92672">&lt;-</span> count <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+  windows_handles <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowHandles</span>()
+  <span style="color:#a6e22e">if</span>(<span style="color:#a6e22e">length</span>(windows_handles) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>){
+    <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  }else{
+    check_handle <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">TRUE</span>
+  }
+
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">remDr <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">remoteDriver</span>(
+  browserName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;chrome&#34;</span>,
+  remoteServerAddr <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;localhost&#34;</span>,
+  port <span style="color:#f92672">=</span> <span style="color:#ae81ff">4444L</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">open</span>()  
+
+
+url <span style="color:#f92672">&lt;-</span><span style="color:#e6db74">&#34;http://www.cninfo.com.cn/new/index&#34;</span>
+
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">navigate</span>(url)
+<span style="color:#a6e22e">library</span>(rvest)
+
+webpage <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">ead_html</span>(remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getPageSource</span>()[[1]][1])
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">quit</span>()
+
+
+lirun <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#common_top_input_obj&#34;</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(webElement <span style="color:#f92672">=</span> lirun)
+lirun<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">click</span>()
+
+webpage <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">read_html</span>(remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getPageSource</span>()[[1]][1])
+nianfen <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#mainSelect&#34;</span>)
+nianfen<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(webElement <span style="color:#f92672">=</span> nianfen)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(x<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, y <span style="color:#f92672">=</span> <span style="color:#ae81ff">500</span> ,webElement <span style="color:#f92672">=</span> nianfen)
+niandu <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;partial link text&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+
+
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowPosition</span>(windowId <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;current&#34;</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowSize</span>()
+
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getActiveElement</span>()
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(webElement <span style="color:#f92672">=</span> nianfen)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">click</span>(buttonId <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> , y <span style="color:#f92672">=</span><span style="color:#ae81ff">500</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> , y <span style="color:#f92672">=</span><span style="color:#ae81ff">30</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">click</span>(buttonId <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>)
+
+niandu <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;link text&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+niandu<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(webElement <span style="color:#f92672">=</span> niandu)
+
+huzhuban <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;partial link text&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">mouseMoveToLocation</span>(webElement <span style="color:#f92672">=</span> huzhuban)
+
+
+shuru <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#common_top_input_obj&#34;</span>)
+wenben <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">list</span>(<span style="color:#e6db74">&#34;&#34;</span>, key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;enter&#34;</span>)
+shuru<span style="color:#f92672">$</span><span style="color:#a6e22e">sendKeysToElement</span>(wenben)
+
+
+
+<span style="color:#75715e">###code 是股票代码</span>
+<span style="color:#a6e22e">for </span>(i in <span style="color:#ae81ff">70</span><span style="color:#f92672">:</span><span style="color:#ae81ff">3761</span>) {
+  code[[i]] <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0</span>(<span style="color:#a6e22e">paste0</span>(<span style="color:#a6e22e">rep</span>(<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#ae81ff">6</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">nchar</span>(all[i])),collapse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>),all[i],collapse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+}
+
+<span style="color:#75715e">###########################     </span>
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">open</span>()
+url <span style="color:#f92672">&lt;-</span><span style="color:#e6db74">&#34;http://www.cninfo.com.cn/new/index&#34;</span>
+
+remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">navigate</span>(url)
+
+
+<span style="color:#a6e22e">for </span>(i in <span style="color:#ae81ff">1</span><span style="color:#f92672">:</span><span style="color:#ae81ff">3760</span>) {
+  error_occur <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">FALSE</span>
+  <span style="color:#75715e">##</span>
+  shuru <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#common_top_input_obj&#34;</span>)
+  wenben <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">list</span>(code[i], key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;enter&#34;</span>)
+  shuru<span style="color:#f92672">$</span><span style="color:#a6e22e">sendKeysToElement</span>(wenben)
+  id <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowHandles</span>()[[1]]
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">2.5</span>)
+  <span style="color:#75715e">###</span>
+  <span style="color:#a6e22e">tryCatch</span>({genduo <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;span a&#34;</span>)},
+           error <span style="color:#f92672">=</span> <span style="color:#a6e22e">function</span>(e){error_occur <span style="color:#f92672">&lt;&lt;-</span> <span style="color:#66d9ef">TRUE</span>})
+  <span style="color:#a6e22e">if</span>(error_occur){
+    suc_list[[i]] <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0</span>(code[i], <span style="color:#e6db74">&#34;failed by span a&#34;</span>)
+    next
+  }
+  
+  
+  genduo<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">2</span>)
+  <span style="color:#75715e">####</span>
+  report <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span> ,value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#tab-5&#34;</span>)
+  report<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  tab <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">read_html</span>(remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getPageSource</span>()[[1]])
+  firm_name <span style="color:#f92672">&lt;-</span> tab <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_node</span>(<span style="color:#e6db74">&#34;#sub-title&#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_text</span>()
+  age <span style="color:#f92672">&lt;-</span> tab <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_node</span>(<span style="color:#e6db74">&#34;.age&#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_text</span>() <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">as.numeric</span>()
+  <span style="color:#a6e22e">if</span>( <span style="color:#a6e22e">is.na</span>(age) ) {
+    
+  }else <span style="color:#a6e22e">if </span>(age <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.7</span>)
+  {next}
+  <span style="color:#75715e">###2019</span>
+  <span style="color:#a6e22e">tryCatch</span>({baogao <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;link text&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#a6e22e">paste0</span>(firm_name,<span style="color:#e6db74">&#34;:2019半年年度报告&#34;</span>))},
+           error <span style="color:#f92672">=</span> <span style="color:#a6e22e">function</span>(e){
+             error_occur <span style="color:#f92672">&lt;&lt;-</span> <span style="color:#66d9ef">TRUE</span>})
+  <span style="color:#a6e22e">if</span>(error_occur){
+    suc_list[[i]] <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0</span>(code[i], <span style="color:#e6db74">&#34; failed by reports name&#34;</span>)
+    next }
+  
+  
+  
+  baogao<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  <span style="color:#75715e">####′IDл′</span>
+  idone <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowHandles</span>()[[2]]
+  <span style="color:#a6e22e">myswitch</span>(remDr, idone)
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  
+  <span style="color:#75715e">####</span>
+  quanp <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">findElement</span>(using <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;css selector&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;.page-filedetail-fullscreen&#34;</span>)
+  quanp<span style="color:#f92672">$</span><span style="color:#a6e22e">clickElement</span>()
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  
+  <span style="color:#75715e">####′IDл′</span>
+  idtwo <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getWindowHandles</span>()[[3]]
+  <span style="color:#a6e22e">myswitch</span>(remDr, idtwo)
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  
+  <span style="color:#75715e">###</span>
+  d_link <span style="color:#f92672">&lt;-</span> remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getCurrentUrl</span>()
+  sss <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">strsplit</span>(d_link[[1]], split <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/&#34;</span>) <span style="color:#f92672">%&gt;%</span>
+    <span style="color:#a6e22e">unlist</span>()
+  wenjian.name <span style="color:#f92672">&lt;-</span> sss<span style="color:#a6e22e">[length</span>(sss)]
+  
+  <span style="color:#a6e22e">tryCatch</span>({<span style="color:#a6e22e">download.file</span>(d_link[[1]],<span style="color:#a6e22e">paste0</span>(firm_name,<span style="color:#e6db74">&#34;.pdf&#34;</span>),mode <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;wb&#34;</span>)},
+           error <span style="color:#f92672">=</span> <span style="color:#a6e22e">function</span>(e){
+             error_occur <span style="color:#f92672">&lt;&lt;-</span> <span style="color:#66d9ef">TRUE</span>
+           })
+  <span style="color:#a6e22e">if</span>(error_occur){
+    suc_list[[i]] <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0</span>(code[i], <span style="color:#e6db74">&#34; failed by downloading&#34;</span>)
+    remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">closeWindow</span>()
+    <span style="color:#a6e22e">myswitch</span>(remDr, idone)
+    remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">closeWindow</span>()
+    <span style="color:#a6e22e">myswitch</span>(remDr, id)
+    next }
+  <span style="color:#a6e22e">Sys.sleep</span>(<span style="color:#ae81ff">1</span>)
+  <span style="color:#a6e22e">cat</span>(i,<span style="color:#e6db74">&#34; downloaded successfully \n&#34;</span>)
+  
+  suc_list[i] <span style="color:#f92672">&lt;-</span> code[i]
+  
+  remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">closeWindow</span>()
+  <span style="color:#a6e22e">myswitch</span>(remDr, idone)
+  remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">closeWindow</span>()
+  <span style="color:#a6e22e">myswitch</span>(remDr, id)
+  
+}
+
+zero <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">read_html</span>(remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">getPageSource</span>()[[1]]) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_node</span>(<span style="color:#e6db74">&#34;.no-data p&#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">html_text</span>()
+
+
+<span style="color:#75715e">#####source: https://github.com/ropensci/RSelenium/issues/143  ###</span>
+
+
+myswitch <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function </span>(remDr, windowId) 
+{
+  qpath <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">sprintf</span>(<span style="color:#e6db74">&#34;%s/session/%s/window&#34;</span>, remDr<span style="color:#f92672">$</span>serverURL, 
+                   remDr<span style="color:#f92672">$</span>sessionInfo[[<span style="color:#e6db74">&#34;id&#34;</span>]])
+  remDr<span style="color:#f92672">$</span><span style="color:#a6e22e">queryRD</span>(qpath, <span style="color:#e6db74">&#34;POST&#34;</span>, qdata <span style="color:#f92672">=</span> <span style="color:#a6e22e">list</span>(handle <span style="color:#f92672">=</span> windowId))
+}
+
+
+<span style="color:#75715e">####</span>
+
+
+}
+
+</code></pre></div>
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>
