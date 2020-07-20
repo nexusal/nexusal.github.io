@@ -3,8 +3,38 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>./tags/data-science/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>./</loc>
-    <lastmod>2020-07-18T16:00:00+08:00</lastmod>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./tags/nlp/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./nlp/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./tags/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./nlp/ted/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./tags/text-mining/</loc>
+    <lastmod>2020-07-19T16:00:00+08:00</lastmod>
   </url>
   
   <url>
@@ -28,7 +58,12 @@
   </url>
   
   <url>
-    <loc>./tags/</loc>
+    <loc>./telco_customer_churn/main/</loc>
+    <lastmod>2020-07-18T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./telco_customer_churn/</loc>
     <lastmod>2020-07-18T16:00:00+08:00</lastmod>
   </url>
   
@@ -40,6 +75,31 @@
   <url>
     <loc>./tags/web-scraping/</loc>
     <lastmod>2020-07-18T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./netfix/netfix/</loc>
+    <lastmod>2020-07-14T09:30:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./netfix/</loc>
+    <lastmod>2020-07-14T09:30:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./tags/visualization/</loc>
+    <lastmod>2020-07-14T09:30:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./stock/stock/</loc>
+    <lastmod>2020-07-13T16:00:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>./stock/</loc>
+    <lastmod>2020-07-13T16:00:00+08:00</lastmod>
   </url>
   
 </urlset>

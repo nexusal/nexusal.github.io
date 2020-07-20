@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ted &middot; Dive into nexus of everything</title>
+  <meta name="description" content="text exploration on transcripts of ted" />
+
+  
+  <link type="text/css" rel="stylesheet" href="./css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="./css/poole.css">
+  <link type="text/css" rel="stylesheet" href="./css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="./css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="./"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="./">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>ted</h1>
+  <time datetime=2020-07-19T16:00:00&#43;0800 class="post-date">Sun, Jul 19, 2020</time>
+  <h3 id="recommend-that-you-can-open-the-pictures-of-this-page-in-another-window-for-more-details">recommend that you can open the pictures of this page in another window for more details</h3>
+<h3 id="original-datahttpswwwkagglecomrounakbanikted-talks"><a href="https://www.kaggle.com/rounakbanik/ted-talks">original data</a></h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(tidyverse)
+<span style="color:#a6e22e">library</span>(jsonlite)
+<span style="color:#a6e22e">library</span>(tm)
+<span style="color:#a6e22e">library</span>(tidytext)
+<span style="color:#a6e22e">library</span>(wordcloud)
+<span style="color:#a6e22e">library</span>(gutenbergr)
+<span style="color:#a6e22e">library</span>(textdata)
+<span style="color:#a6e22e">library</span>(igraph)
+<span style="color:#a6e22e">library</span>(ggraph)
+<span style="color:#a6e22e">library</span>(widyr)
+<span style="color:#a6e22e">library</span>(topicmodels)
+
+main <span style="color:#f92672">&lt;-</span>  <span style="color:#a6e22e">read.csv</span>(<span style="color:#e6db74">&#34;ted_main.csv&#34;</span>)
+
+
+related <span style="color:#f92672">&lt;-</span> main<span style="color:#f92672">$</span>related_talks[1] <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">gsub</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#39;&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\&#34;&#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">gsub</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\&#34;s&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#39;s&#34;</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">gsub</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\\s&#39;s&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; \&#34;s&#34;</span>) <span style="color:#f92672">%&gt;%</span>
+ <span style="color:#a6e22e">fromJSON</span>()
+
+tags <span style="color:#f92672">&lt;-</span> main<span style="color:#f92672">$</span>tags[1] <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">str_extract_all</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\\w+&#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">unlist</span>()
+
+</code></pre></div><h4 id="load-the-stopwords-of-english">load the stopwords of english</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">
+my_stop <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">readLines</span>(<span style="color:#e6db74">&#34;english.txt&#34;</span>)
+add_stop <span style="color:#f92672">&lt;-</span> my_stop[ <span style="color:#f92672">!</span> my_stop <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">stopwords</span>(<span style="color:#e6db74">&#34;SMART&#34;</span>)]
+my_stop <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#a6e22e">stopwords</span>(<span style="color:#e6db74">&#34;SMART&#34;</span>), add_stop, <span style="color:#e6db74">&#34;I&#34;</span>,<span style="color:#e6db74">&#34;and&#34;</span>,<span style="color:#e6db74">&#34;And&#34;</span>)
+</code></pre></div><h4 id="text-mining-in-r-using-a-book-dowloading-form-gutenberg_download-function-number-represents-the-book-id-get_sentiments-function-could-return-a-list-of-words-that-has-been-attatched-of-a-value-which-represents-its-emotion-degree-range-from--5-to-5--the-most-negative-to-positive-repectively-based-on-the-value-we-could-plot-the-emotion-variation-across-the-whole-book-preferably-using-large-text">text mining in R ,using a book dowloading form gutenberg_download function ,number represents the book ID, get_sentiments function could return a list of words that has been attatched of a value ,which represents its emotion degree( range from -5 to 5 , the most negative to positive repectively), based on the value, we could plot the emotion variation across the whole book, preferably using large text</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">book <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">gutenberg_download</span>(<span style="color:#ae81ff">9</span>)
+afinn <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">get_sentiments</span>(<span style="color:#e6db74">&#34;afinn&#34;</span>)
+
+book <span style="color:#f92672">&lt;-</span> book<span style="color:#a6e22e">[str_detect</span>(book<span style="color:#f92672">$</span>text, <span style="color:#e6db74">&#34;\\w+&#34;</span>),] <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">unnest_tokens</span>(output <span style="color:#f92672">=</span> word, text, token <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;words&#34;</span>)
+
+
+
+senti_words <span style="color:#f92672">&lt;-</span> book <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">inner_join</span>(afinn) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">count</span>(word,sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">inner_join</span>(x <span style="color:#f92672">=</span> afinn) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">mutate</span>(scores <span style="color:#f92672">=</span> value <span style="color:#f92672">*</span> n)
+
+<span style="color:#a6e22e">ggplot</span>(senti_words, <span style="color:#a6e22e">aes</span>(word, scores)) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_bar</span>(stat <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;identity&#34;</span>, fill <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lightblue&#34;</span>)<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">labs</span>(x <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">coord_flip</span>() <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme</span>(axis.ticks.length.x <span style="color:#f92672">=</span> <span style="color:#a6e22e">element_blank</span>())<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme_classic</span>()
+</code></pre></div><p><img src="/nlp/1.png" alt="1"></p>
+<h4 id="the-test-has-finished-now-back-to-our-initial-tiny-project-ted-transcripts">the test has finished, now back to our initial tiny project ted transcripts</h4>
+<h4 id="take-the-first-transcript-for-analysis-i-dont-wanna-any-punctuation-show-in-my-analysis-so-just-strip-them-out">take the first transcript for analysis, I don&rsquo;t wanna any punctuation show in my analysis, so just strip them out.</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">ranscript <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">read.csv</span>(<span style="color:#e6db74">&#34;transcripts.csv&#34;</span>, encoding <span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>)
+first <span style="color:#f92672">&lt;-</span> transcript[1,<span style="color:#ae81ff">1</span>] <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">str_replace_all</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;[.|,|&#39;|;|\&#34;|?|-|—]&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">str_replace_all</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\\(\\w+\\)&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;  &#34;</span>) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">str_split</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">as.data.frame</span>() <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">mutate</span>(doc <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>)
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">colnames</span>(first)[1] <span style="color:#f92672">&lt;-</span> <span style="color:#e6db74">&#34;word&#34;</span>
+
+first <span style="color:#f92672">&lt;-</span> first <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">filter</span>(word <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+
+senti_words <span style="color:#f92672">&lt;-</span> first <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">inner_join</span>(afinn) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">count</span>(word,sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>)
+
+senti_words <span style="color:#f92672">&lt;-</span> first <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">inner_join</span>(afinn)
+
+senti_words<span style="color:#f92672">$</span>value <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">sum</span>()
+
+<span style="color:#a6e22e">ggplot</span>(senti_words, <span style="color:#a6e22e">aes</span>(word, value)) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_bar</span>(stat <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;identity&#34;</span>, fill <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lightblue&#34;</span>)<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">labs</span>(x <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">coord_flip</span>() <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme</span>(axis.ticks.length.x <span style="color:#f92672">=</span> <span style="color:#a6e22e">element_blank</span>())<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme_classic</span>()
+</code></pre></div><p><img src="/nlp/2.png" alt="1"></p>
+<h4 id="wordcloud">wordcloud</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">word_num <span style="color:#f92672">&lt;-</span> first <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">anti_join</span>(<span style="color:#a6e22e">data.frame</span>(word <span style="color:#f92672">=</span> my_stop)) <span style="color:#f92672">%&gt;%</span> 
+<span style="color:#a6e22e">count</span>(word, sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">mutate</span>(ratio <span style="color:#f92672">=</span> n<span style="color:#f92672">/</span><span style="color:#a6e22e">sum</span>(n))
+
+<span style="color:#a6e22e">wordcloud</span>(word_num<span style="color:#f92672">$</span>word,word_num<span style="color:#f92672">$</span>n,max.words <span style="color:#f92672">=</span> <span style="color:#ae81ff">100</span>)
+</code></pre></div><p><img src="/nlp/3.png" alt="1"></p>
+<h4 id="see-the-general-emotion-of-this-transcript-is-extremly-positive">see, the general emotion of this transcript is extremly positive</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">pre_text <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function</span>(s,d) {
+first <span style="color:#f92672">&lt;-</span> transcript[s,<span style="color:#ae81ff">1</span>] <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">str_replace_all</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;[.|,|&#39;|;|\&#34;|?|-|—]&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">str_replace_all</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;\\(\\w+\\)&#34;</span>,replacement <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;  &#34;</span>) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">str_split</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">as.data.frame</span>() <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">mutate</span>(doc <span style="color:#f92672">=</span> d)
+
+<span style="color:#a6e22e">colnames</span>(first)[1] <span style="color:#f92672">&lt;-</span> <span style="color:#e6db74">&#34;word&#34;</span>
+first <span style="color:#f92672">&lt;-</span> first <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">filter</span>(word <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span>)
+<span style="color:#a6e22e">return</span>(first)
+}
+
+sec <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pre_text</span>(<span style="color:#ae81ff">234</span>,<span style="color:#ae81ff">234</span>)
+third <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pre_text</span>(<span style="color:#ae81ff">2345</span>,<span style="color:#ae81ff">2345</span>)
+top3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">rbind</span>(first,sec,third)
+
+top3_num <span style="color:#f92672">&lt;-</span> top3 <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">count</span>(word,doc, sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>)
+</code></pre></div><h4 id="randomly-picking-three-speech-transcripts-to-check-there-main-subjects-we-can-print-their-tags-to-confirm-wether-the-results-is-right-or-not">randomly picking three speech transcripts to check there main subjects, we can print their tags to confirm wether the results is right or not</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">df_weigh <span style="color:#f92672">&lt;-</span> top3_num <span style="color:#f92672">%&gt;%</span>
+<span style="color:#a6e22e">bind_tf_idf</span>(term <span style="color:#f92672">=</span> word,doc,n <span style="color:#f92672">=</span> n) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">arrange</span>(<span style="color:#a6e22e">desc</span>(tf_idf))
+
+df_weigh <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">group_by</span>(doc) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">top_n</span>(<span style="color:#ae81ff">15</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">ungroup</span>() <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">ggplot</span>(<span style="color:#a6e22e">aes</span>(<span style="color:#a6e22e">reorder</span>(word,tf_idf),tf_idf,fill <span style="color:#f92672">=</span> doc)) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_col</span>(show.legend <span style="color:#f92672">=</span> <span style="color:#66d9ef">FALSE</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">facet_wrap</span>(<span style="color:#f92672">~</span>doc,ncol <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>,scales <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;free&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">coord_flip</span>()
+r3 <span style="color:#f92672">&lt;-</span> transcript<span style="color:#a6e22e">[c</span>(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">234</span>,<span style="color:#ae81ff">2345</span>),]<span style="color:#f92672">$</span>url 
+
+r3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">filter</span>(main, url <span style="color:#f92672">%in%</span> r3)
+
+<span style="color:#a6e22e">str_extract_all</span>(r3<span style="color:#f92672">$</span>tags,<span style="color:#e6db74">&#34;\\w+&#34;</span>)
+
+</code></pre></div><p><img src="/nlp/5.png" alt="1"></p>
+<ul>
+<li>&ldquo;children&rdquo;   &ldquo;creativity&rdquo; &ldquo;culture&rdquo;    &ldquo;dance&rdquo;      &ldquo;education&rdquo;  &ldquo;parenting&rdquo;  &ldquo;teaching&rdquo;</li>
+<li>&ldquo;anthropology&rdquo;  &ldquo;beauty&rdquo;       &ldquo;culture&rdquo;      &ldquo;faith&rdquo;        &ldquo;global&rdquo;       &ldquo;issues&rdquo;       &ldquo;photography&rdquo;  &ldquo;religion&rdquo;</li>
+<li>&ldquo;TEDx&rdquo;          &ldquo;business&rdquo;      &ldquo;capitalism&rdquo;    &ldquo;climate&rdquo;       &ldquo;change&rdquo;        &ldquo;collaboration&rdquo; &ldquo;economics&rdquo;     &ldquo;environment&rdquo;
+&ldquo;global&rdquo;        &ldquo;development&rdquo;   &ldquo;global&rdquo;        &ldquo;issues&rdquo;        &ldquo;government&rdquo;    &ldquo;health&rdquo;        &ldquo;health&rdquo;        &ldquo;care&rdquo;      <br>
+&ldquo;humanity&rdquo;      &ldquo;investment&rdquo;    &ldquo;leadership&rdquo;    &ldquo;policy&rdquo;        &ldquo;pollution&rdquo;     &ldquo;public&rdquo;        &ldquo;health&rdquo;        &ldquo;social&rdquo;    <br>
+&ldquo;change&rdquo;        &ldquo;success&rdquo;</li>
+</ul>
+<h4 id="to-draw-networks-between-wordsbigram-alpha-of-arrows-is-determined-by-count-number">to draw networks between words(bigram), alpha of arrows is determined by count number</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">draft_random <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data.frame</span>(text <span style="color:#f92672">=</span> transcript[231,<span style="color:#ae81ff">1</span>]) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">unnest_tokens</span>(bigram, text,
+                                                                      token <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ngrams&#34;</span>,
+                                                                      n <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">separate</span>(col <span style="color:#f92672">=</span> bigram,into <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;word1&#34;</span>,<span style="color:#e6db74">&#34;word2&#34;</span>),sep <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span> word1 <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">stopwords</span>(<span style="color:#e6db74">&#34;SMART&#34;</span>) <span style="color:#f92672">&amp;</span> <span style="color:#f92672">!</span> word2 <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">stopwords</span>(<span style="color:#e6db74">&#34;SMART&#34;</span>)) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">str_detect</span>(word1 ,<span style="color:#e6db74">&#34;\\d&#34;</span>) <span style="color:#f92672">&amp;</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">str_detect</span>(word2,<span style="color:#e6db74">&#34;\\d&#34;</span>)) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">count</span>(word1,word2,sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">graph_from_data_frame</span>()
+  
+draft_random
+
+a <span style="color:#f92672">&lt;-</span> grid<span style="color:#f92672">::</span><span style="color:#a6e22e">arrow</span>(type  <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;closed&#39;</span>, length <span style="color:#f92672">=</span> <span style="color:#a6e22e">unit</span>(<span style="color:#ae81ff">.1</span>,<span style="color:#e6db74">&#34;inches&#34;</span>))
+
+<span style="color:#a6e22e">ggraph</span>(draft_random,layout <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;fr&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_edge_link</span>(<span style="color:#a6e22e">aes</span>(edge_alpha <span style="color:#f92672">=</span> n),arrow <span style="color:#f92672">=</span> a,
+                 end_cap <span style="color:#f92672">=</span> <span style="color:#a6e22e">circle</span>(<span style="color:#ae81ff">.1</span>,<span style="color:#e6db74">&#34;inches&#34;</span>))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_node_point</span>(color <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lightblue&#34;</span>,size <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_node_text</span>(<span style="color:#a6e22e">aes</span>(label <span style="color:#f92672">=</span> name))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme_void</span>()
+</code></pre></div><ul>
+<li>&ldquo;Africa&rdquo;      &ldquo;activism&rdquo;    &ldquo;business&rdquo;    &ldquo;economics&rdquo;   &ldquo;global&rdquo;      &ldquo;development&rdquo; &ldquo;global&rdquo;      &ldquo;issues&rdquo;      &ldquo;inequality&rdquo;
+&ldquo;politics&rdquo;    &ldquo;poverty&rdquo; 
+tags are assigned by offcial 
+<img src="/nlp/6.png" alt="1"></li>
+</ul>
+<h4 id="there-are-duplicate-observations-in-datasets--strip-that-out--we-are-gonna-to-do-something-about-pair-words-count-and-coorelation">there are duplicate observations in datasets , strip that out , we are gonna to do something about pair words count and coorelation</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">final <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">mutate</span>(final, doc <span style="color:#f92672">=</span> <span style="color:#a6e22e">paste0</span>(<span style="color:#e6db74">&#34;doc&#34;</span>,<span style="color:#ae81ff">1</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1618</span>))
+
+speech_word <span style="color:#f92672">&lt;-</span> final <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">select</span>(transcript) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">mutate</span>(transcript <span style="color:#f92672">=</span> transcript,
+                                doc <span style="color:#f92672">=</span> <span style="color:#a6e22e">paste0</span>(<span style="color:#e6db74">&#34;doc&#34;</span>,<span style="color:#ae81ff">1</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1618</span>)) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">unnest_tokens</span>(word, transcript) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span> <span style="color:#a6e22e">str_detect</span>(word,<span style="color:#e6db74">&#34;\\d&#34;</span>)) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span> word <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(my_stop,<span style="color:#e6db74">&#34;laughter&#34;</span>,<span style="color:#e6db74">&#34;people&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>,<span style="color:#e6db74">&#34;applause&#34;</span>,<span style="color:#e6db74">&#34;lot&#34;</span>)) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">pairwise_count</span>(word,doc,sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>)
+
+ted_stop <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;laughter&#34;</span>,<span style="color:#e6db74">&#34;people&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>,<span style="color:#e6db74">&#34;applause&#34;</span>,<span style="color:#e6db74">&#34;lot&#34;</span>,<span style="color:#e6db74">&#34;life&#34;</span>,<span style="color:#e6db74">&#34;day&#34;</span>,<span style="color:#e6db74">&#34;called&#34;</span>,<span style="color:#e6db74">&#34;talk&#34;</span>,
+              <span style="color:#e6db74">&#34;started&#34;</span>,<span style="color:#e6db74">&#34;start&#34;</span>)
+  
+speech_filtered <span style="color:#f92672">&lt;-</span> speech_word <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span>item1 <span style="color:#f92672">%in%</span> ted_stop) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span>item2 <span style="color:#f92672">%in%</span> ted_stop)
+</code></pre></div><h4 id="the-realtionship-common-pairs-of-words-co-appearing-within-the-same-speech-of-all-tags-in-datasets-select-top-30-tags--note-that-edge_alpha-is-specified-by-count">the realtionship (common pairs of words co-appearing within the same speech) of all tags in datasets, select top 30 tags , note that edge_alpha is specified by count</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">speech_key <span style="color:#f92672">&lt;-</span> final <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">select</span>(tags, doc) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">mutate</span>(tags <span style="color:#f92672">=</span> <span style="color:#a6e22e">str_extract_all</span>(final<span style="color:#f92672">$</span>tags, <span style="color:#e6db74">&#34;\\w+&#34;</span>) <span style="color:#f92672">%&gt;%</span> 
+           <span style="color:#a6e22e">lapply</span>(paste,collapse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)  <span style="color:#f92672">%&gt;%</span> 
+           <span style="color:#a6e22e">unlist</span>()  ) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">unnest_tokens</span>(keys,tags) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">pairwise_count</span>(keys,doc,sort <span style="color:#f92672">=</span> T)
+  
+speech_key <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">filter</span>(n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">30</span>) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">graph_from_data_frame</span>() <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">ggraph</span>(layout <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;fr&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_edge_link</span>(<span style="color:#a6e22e">aes</span>(edge_alpha <span style="color:#f92672">=</span> n, edge_width <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>), edge_colour <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;firebrick&#34;</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_node_point</span>(size <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> ) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_node_text</span>(<span style="color:#a6e22e">aes</span>(label <span style="color:#f92672">=</span> name ),repel <span style="color:#f92672">=</span> T, 
+                 point.padding <span style="color:#f92672">=</span> <span style="color:#a6e22e">unit</span>(<span style="color:#ae81ff">0.2</span>,<span style="color:#e6db74">&#34;lines&#34;</span>)) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme_void</span>()
+</code></pre></div><p><img src="/nlp/7.png" alt="1"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">speech_key_cor <span style="color:#f92672">&lt;-</span> final <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">select</span>(tags, doc) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">mutate</span>(tags <span style="color:#f92672">=</span> <span style="color:#a6e22e">str_extract_all</span>(final<span style="color:#f92672">$</span>tags, <span style="color:#e6db74">&#34;\\w+&#34;</span>) <span style="color:#f92672">%&gt;%</span> 
+           <span style="color:#a6e22e">lapply</span>(paste,collapse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)  <span style="color:#f92672">%&gt;%</span> 
+           <span style="color:#a6e22e">unlist</span>()  ) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">unnest_tokens</span>(keys,tags) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">pairwise_cor</span>(keys,doc,sort <span style="color:#f92672">=</span> T)
+
+<span style="color:#a6e22e">summary</span>(speech_key_cor<span style="color:#f92672">$</span>correlation)
+</code></pre></div><table>
+<thead>
+<tr>
+<th align="center">Min.</th>
+<th align="center">1st Qu.</th>
+<th align="center">Median</th>
+<th align="center">Mean</th>
+<th align="center">3rd Qu.</th>
+<th align="center">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-0.144255</td>
+<td align="center">-0.011062</td>
+<td align="center">-0.006122</td>
+<td align="center">0.003863</td>
+<td align="center">-0.002772</td>
+<td align="center">1.000000</td>
+</tr>
+</tbody>
+</table>
+<h4 id="the-correlation-how-often-they-appear-in-the-same-doc-of-all-tags-in-datasets-select-top-30-tags--note-that-both-of-edge_alpha-and-edge_width-are-specified-by-correlation">the correlation (how often they appear in the same doc) of all tags in datasets, select top 30 tags , note that both of edge_alpha and edge_width are specified by correlation</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">speech_key_cor <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">filter</span>(correlation <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.3</span>) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">graph_from_data_frame</span>() <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">ggraph</span>(layout <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;fr&#34;</span>) <span style="color:#f92672">+</span>
+   <span style="color:#a6e22e">geom_edge_link</span>(<span style="color:#a6e22e">aes</span>(edge_alpha <span style="color:#f92672">=</span> correlation, edge_width <span style="color:#f92672">=</span> correlation), edge_colour <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;firebrick&#34;</span>) <span style="color:#f92672">+</span>
+   <span style="color:#a6e22e">geom_node_point</span>(size <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> ) <span style="color:#f92672">+</span>
+   <span style="color:#a6e22e">geom_node_text</span>(<span style="color:#a6e22e">aes</span>(label <span style="color:#f92672">=</span> name ),repel <span style="color:#f92672">=</span> T, 
+                  point.padding <span style="color:#f92672">=</span> <span style="color:#a6e22e">unit</span>(<span style="color:#ae81ff">0.2</span>,<span style="color:#e6db74">&#34;lines&#34;</span>)) <span style="color:#f92672">+</span>
+   <span style="color:#a6e22e">theme_void</span>()
+</code></pre></div><p><img src="/nlp/8.png" alt="1"></p>
+<h4 id="we-can-see-quite-a-lot-subjects-are-frequently-discussed-by-speaker-say--space-related-topic-gender-quality-environment-protection--mental-health-and-related-neuroscience">we can see quite a lot subjects are frequently discussed by speaker, say , space related topic, gender quality, environment protection , mental health and related neuroscience</h4>
+<h4 id="take-analysis-on-speech-transcripts-of-entire-datasets">take analysis on speech transcripts of entire datasets</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">  
+for_tf_ <span style="color:#f92672">&lt;-</span> final <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">select</span>(transcript, doc) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">unnest_tokens</span>(word, transcript) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span> <span style="color:#a6e22e">str_detect</span>(word,<span style="color:#e6db74">&#34;\\d&#34;</span>)) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">filter</span>(<span style="color:#f92672">!</span> word <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(my_stop,ted_stop)) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">count</span>(word,doc,sort <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">bind_tf_idf</span>(word,doc,n)
+
+
+top_tf_idf <span style="color:#f92672">&lt;-</span> for_tf_ <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">group_by</span>(doc) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">top_n</span>(<span style="color:#ae81ff">1</span>) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">ungroup</span>() <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">full_join</span>(<span style="color:#a6e22e">select</span>(final,description,main_speaker,tags,title,doc),by <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;doc&#34;</span>)
+</code></pre></div><h4 id="we-couldnt-visualize-all-speeches-keywords-at-once-visualizing-random-10-speeches">we couldn&rsquo;t visualize all speeches keywords at once, visualizing random 10 speeches</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">keyAndTags <span style="color:#f92672">&lt;-</span> top_tf_idf <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">select</span>(word, tags, doc,n ) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">mutate</span>(tags  <span style="color:#f92672">=</span> <span style="color:#a6e22e">str_extract_all</span>(tags, <span style="color:#e6db74">&#34;\\w+&#34;</span>) <span style="color:#f92672">%&gt;%</span> 
+            <span style="color:#a6e22e">lapply</span>(paste,collapse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)  <span style="color:#f92672">%&gt;%</span> 
+            <span style="color:#a6e22e">unlist</span>() ) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">sample_n</span>(<span style="color:#ae81ff">10</span>) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">unnest_tokens</span>(tags,tags) <span style="color:#f92672">%&gt;%</span>
+   <span style="color:#a6e22e">graph_from_data_frame</span>()
+
+<span style="color:#a6e22e">ggraph</span>(keyAndTags,layout <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;fr&#34;</span>) <span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">geom_edge_link</span>(<span style="color:#a6e22e">aes</span>(edge_alpha <span style="color:#f92672">=</span> n, edge_width <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>), edge_colour <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;firebrick&#34;</span>) <span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">geom_node_point</span>(size <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> ) <span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">geom_node_text</span>(<span style="color:#a6e22e">aes</span>(label <span style="color:#f92672">=</span> name ),repel <span style="color:#f92672">=</span> T, 
+                   point.padding <span style="color:#f92672">=</span> <span style="color:#a6e22e">unit</span>(<span style="color:#ae81ff">0.2</span>,<span style="color:#e6db74">&#34;lines&#34;</span>)) <span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">theme_void</span>()
+</code></pre></div><p><img src="/nlp/9.png" alt="1"></p>
+<h2 id="to-be-fleshed-out">to be fleshed out.</h2>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

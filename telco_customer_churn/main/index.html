@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>telco customer churn &middot; Dive into nexus of everything</title>
+  <meta name="description" content="customer retention analysis and churn rate prediction" />
+
+  
+  <link type="text/css" rel="stylesheet" href="./css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="./css/poole.css">
+  <link type="text/css" rel="stylesheet" href="./css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="./css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="./"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="./">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>telco customer churn</h1>
+  <time datetime=2020-07-18T16:00:00&#43;0800 class="post-date">Sat, Jul 18, 2020</time>
+  <h4 id="original-datasets-come-from-kaggle-click-herehttpswwwkagglecomblastchartelco-customer-churn-to-check">original datasets come from kaggle, click <a href="https://www.kaggle.com/blastchar/telco-customer-churn">here</a> to check</h4>
+<h4 id="you-could-see-the-metadata-in--data-explorer-of-every-column-when-you-scroll-down">you could see the metadata in  <strong>Data Explorer</strong> of every column when you scroll down</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(tidyverse)
+<span style="color:#a6e22e">library</span>(tidyselect)
+<span style="color:#a6e22e">library</span>(pROC)
+<span style="color:#a6e22e">library</span>(randomForest)
+<span style="color:#a6e22e">library</span>(caret)
+<span style="color:#a6e22e">library</span>(cowplot)
+<span style="color:#a6e22e">library</span>(ggcorrplot)
+
+retention <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">read.csv</span>(<span style="color:#e6db74">&#39;WA_Fn-UseC_-Telco-Customer-Churn.csv&#39;</span>,stringsAsFactors <span style="color:#f92672">=</span> <span style="color:#66d9ef">FALSE</span>)
+
+<span style="color:#75715e">###### checking if there are any missing value </span>
+
+n_miss <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function</span>(x) 
+  n <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">sum</span>(<span style="color:#a6e22e">is.na</span>(x))
+  <span style="color:#a6e22e">return</span>(n)
+
+
+<span style="color:#a6e22e">apply</span>(retention,<span style="color:#ae81ff">2</span>,n_miss)
+</code></pre></div><h6 id="only-totalcharges-has-11-missing-values-consider-we-have-more-than-7000-observations-">only totalcharges has 11 missing values, consider we have more than 7000 observations ,</h6>
+<h6 id="im-just-gonna-discard--all-of-these">I&rsquo;m just gonna discard  all of these</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">
+retention <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">filter</span>(retention,<span style="color:#f92672">!</span><span style="color:#a6e22e">is.na</span>(TotalCharges))
+retention <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">mutate</span>(retention, Churn <span style="color:#f92672">=</span> <span style="color:#a6e22e">if_else</span>( Churn <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;Yes&#34;</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0</span>))
+retention<span style="color:#f92672">$</span>Churn <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.factor</span>(retention<span style="color:#f92672">$</span>Churn)
+retention<span style="color:#f92672">$</span>tenure <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.numeric</span>(retention<span style="color:#f92672">$</span>tenure)
+retention<span style="color:#f92672">$</span>TotalCharges <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.numeric</span>(retention<span style="color:#f92672">$</span>TotalCharges)
+retention<span style="color:#f92672">$</span>MonthlyCharges <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.numeric</span>(retention<span style="color:#f92672">$</span>MonthlyCharges)
+<span style="color:#a6e22e">glimpse</span>(retention)
+</code></pre></div><h6 id="currently-our-product-is-not-associated-with-gender">currently, our product is not associated with gender</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">bins <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cut</span>(retention<span style="color:#f92672">$</span>tenure, breaks <span style="color:#f92672">=</span> <span style="color:#ae81ff">72</span>) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">as.integer</span>()
+rate_churn <span style="color:#f92672">&lt;-</span> retention <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">select</span>(Churn) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">cbind</span>(bins) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">group_by</span>(bins) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">count</span>(Churn) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">ungroup</span>() <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">arrange</span>(bins)
+
+
+<span style="color:#a6e22e">ggplot</span>(rate_churn , <span style="color:#a6e22e">aes</span>(bins,n , fill <span style="color:#f92672">=</span> <span style="color:#a6e22e">as.factor</span>(Churn))) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_bar</span>(stat <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;identity&#34;</span>, position <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;stack&#34;</span>)<span style="color:#f92672">+</span> 
+  <span style="color:#a6e22e">geom_point</span>(data <span style="color:#f92672">=</span> <span style="color:#a6e22e">filter</span>(rate_churn,Churn <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>), <span style="color:#a6e22e">aes</span>(bins, n))
+</code></pre></div><p><img src="/telco_customer_churn/1.png" alt="1"></p>
+<h6 id="the-distribution-of-the-tenure-suggests-new-user-is-the-most-vulnerable--then-along-with-the-increasing-tenure-they-are-more-likely-to-stick-to-our-servicr">the distribution of the tenure suggests new user is the most vulnerable , then along with the increasing tenure they are more likely to stick to our servicr.</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">colnames</span>(retention)
+
+v_plot <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function</span>(x) { <span style="color:#75715e">## select accept string, while count,filter etc. should use .data[[&#34;string]] to specify columns</span>
+  p <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">select</span>(retention, x,Churn) <span style="color:#f92672">%&gt;%</span> 
+    <span style="color:#a6e22e">group_by</span>(Churn) <span style="color:#f92672">%&gt;%</span> 
+    <span style="color:#a6e22e">count</span>(.data[[x]]) <span style="color:#f92672">%&gt;%</span>
+    <span style="color:#a6e22e">ungroup</span>()<span style="color:#f92672">%&gt;%</span>
+    <span style="color:#a6e22e">ggplot</span>(<span style="color:#a6e22e">aes</span>(<span style="color:#a6e22e">as.factor</span>(Churn), n,fill <span style="color:#f92672">=</span> <span style="color:#a6e22e">as.factor</span>(.data[[x]]))) <span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">geom_bar</span>(stat <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;identity&#34;</span>, position <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;stack&#34;</span>)<span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">guides</span>(fill<span style="color:#f92672">=</span><span style="color:#a6e22e">guide_legend</span>(title<span style="color:#f92672">=</span>x))<span style="color:#f92672">+</span>
+    <span style="color:#a6e22e">labs</span>(x <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Churn&#34;</span>)
+  <span style="color:#a6e22e">return</span>(p)}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">plot_grid</span>(<span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;StreamingTV&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;StreamingMovies&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;TechSupport&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;DeviceProtection&#34;</span>))
+</code></pre></div><p><img src="/telco_customer_churn/2.png" alt="1"></p>
+<h6 id="base-on-above-this--graph-this-product-highly-depend-on-internet">base on above this  graph, this product highly depend on internet.</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">plot_grid</span>(<span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;Partner&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;gender&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;Dependents&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;PhoneService&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;MultipleLines&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;OnlineSecurity&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;OnlineBackup&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;PaperlessBilling&#34;</span>),
+          <span style="color:#a6e22e">v_plot</span>(<span style="color:#e6db74">&#34;PaymentMethod&#34;</span>))
+</code></pre></div><p><img src="/telco_customer_churn/3.png" alt="1"></p>
+<ul>
+<li>surprisingly, dependents impacts clients retention in some extents,those who have <strong>dependents</strong> is more royal   to our product</li>
+<li>we encourage clients to subscribe <strong>OnlineSecurity</strong></li>
+<li>same to <strong>paperlessbilling</strong></li>
+<li>paying by <strong>credit card</strong> is highly recommended</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">ggplot</span>(retention, <span style="color:#a6e22e">aes</span>(<span style="color:#a6e22e">as.factor</span>(Churn),tenure,color <span style="color:#f92672">=</span> Contract))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_jitter</span>(size <span style="color:#f92672">=</span> <span style="color:#ae81ff">2.5</span>, alpha <span style="color:#f92672">=</span> <span style="color:#ae81ff">.6</span>) <span style="color:#75715e">#p1</span>
+
+</code></pre></div><p><img src="/telco_customer_churn/4.png" alt="1"></p>
+<h6 id="we-could-retain-a-substantial-amount-of-users-via-encouraging-them-to-accept-long-term-contract">We could retain a substantial amount of users via encouraging them to accept long term contract</h6>
+<h3 id="building-models">building models</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">m_glm <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">glm</span>(Churn<span style="color:#f92672">~</span>.- customerID,data <span style="color:#f92672">=</span> retention,family <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;binomial&#34;</span>)
+
+m_glm
+
+Call<span style="color:#f92672">:</span>  <span style="color:#a6e22e">glm</span>(formula <span style="color:#f92672">=</span> Churn <span style="color:#f92672">~</span> . <span style="color:#f92672">-</span> customerID, family <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;binomial&#34;</span>, data <span style="color:#f92672">=</span> retention)
+
+Coefficients<span style="color:#f92672">:</span>
+                         (Intercept)                            genderMale  
+                           <span style="color:#ae81ff">1.1652875</span>                            <span style="color:#ae81ff">-0.0218327</span>  
+                       SeniorCitizen                            PartnerYes  
+                           <span style="color:#ae81ff">0.2167750</span>                            <span style="color:#ae81ff">-0.0003840</span>  
+                       DependentsYes                                tenure  
+                          <span style="color:#ae81ff">-0.1484878</span>                            <span style="color:#ae81ff">-0.0605876</span>  
+                     PhoneServiceYes         MultipleLinesNo phone service  
+                           <span style="color:#ae81ff">0.1714678</span>                                    <span style="color:#66d9ef">NA</span>  
+                    MultipleLinesYes            InternetServiceFiber optic  
+                           <span style="color:#ae81ff">0.4483954</span>                             <span style="color:#ae81ff">1.7474749</span>  
+                   InternetServiceNo     OnlineSecurityNo internet service  
+                          <span style="color:#ae81ff">-1.7862947</span>                                    <span style="color:#66d9ef">NA</span>  
+                   OnlineSecurityYes       OnlineBackupNo internet service  
+                          <span style="color:#ae81ff">-0.2054200</span>                                    <span style="color:#66d9ef">NA</span>  
+                     OnlineBackupYes   DeviceProtectionNo internet service  
+                           <span style="color:#ae81ff">0.0260418</span>                                    <span style="color:#66d9ef">NA</span>  
+                 DeviceProtectionYes        TechSupportNo internet service  
+                           <span style="color:#ae81ff">0.1473750</span>                                    <span style="color:#66d9ef">NA</span>  
+                      TechSupportYes        StreamingTVNo internet service  
+                          <span style="color:#ae81ff">-0.1804968</span>                                    <span style="color:#66d9ef">NA</span>  
+                      StreamingTVYes    StreamingMoviesNo internet service  
+                           <span style="color:#ae81ff">0.5905074</span>                                    <span style="color:#66d9ef">NA</span>  
+                  StreamingMoviesYes                      ContractOne year  
+                           <span style="color:#ae81ff">0.5992957</span>                            <span style="color:#ae81ff">-0.6607953</span>  
+                    ContractTwo year                   PaperlessBillingYes  
+                          <span style="color:#ae81ff">-1.3571062</span>                             <span style="color:#ae81ff">0.3423536</span>  
+PaymentMethodCredit <span style="color:#a6e22e">card </span>(automatic)         PaymentMethodElectronic check  
+                          <span style="color:#ae81ff">-0.0877918</span>                             <span style="color:#ae81ff">0.3044673</span>  
+           PaymentMethodMailed check                        MonthlyCharges  
+                          <span style="color:#ae81ff">-0.0575872</span>                            <span style="color:#ae81ff">-0.0403435</span>  
+                        TotalCharges  
+                           <span style="color:#ae81ff">0.0003289</span>  
+
+Degrees of Freedom<span style="color:#f92672">:</span> <span style="color:#ae81ff">7031</span> <span style="color:#a6e22e">Total </span>(i.e. Null);  <span style="color:#ae81ff">7008</span> Residual
+Null Deviance<span style="color:#f92672">:</span>	    <span style="color:#ae81ff">8143</span> 
+Residual Deviance<span style="color:#f92672">:</span> <span style="color:#ae81ff">5826</span> 	AIC<span style="color:#f92672">:</span> <span style="color:#ae81ff">5874</span>
+
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">item <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data.frame</span>(coef <span style="color:#f92672">=</span> m_glm<span style="color:#f92672">$</span>coefficients) <span style="color:#f92672">%&gt;%</span> 
+  <span style="color:#a6e22e">mutate</span>(odds <span style="color:#f92672">=</span> <span style="color:#a6e22e">exp</span>(coef),name <span style="color:#f92672">=</span> <span style="color:#a6e22e">rownames</span>(.)) <span style="color:#f92672">%&gt;%</span> <span style="color:#a6e22e">arrange</span>(<span style="color:#a6e22e">desc</span>(odds))
+item
+</code></pre></div><table>
+<thead>
+<tr>
+<th align="center">ID</th>
+<th align="center">coef</th>
+<th align="center">odds</th>
+<th align="center">name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">1.7474749099</td>
+<td align="center">5.7400901</td>
+<td align="center">InternetServiceFiber optic</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">1.1652874730</td>
+<td align="center">3.2068446</td>
+<td align="center">(Intercept)</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">0.5992957142</td>
+<td align="center">1.8208360</td>
+<td align="center">StreamingMoviesYes</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">0.5905074088</td>
+<td align="center">1.8049040</td>
+<td align="center">StreamingTVYes</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">0.4483954398</td>
+<td align="center">1.5657978</td>
+<td align="center">MultipleLinesYes</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">0.3423536429</td>
+<td align="center">1.4082582</td>
+<td align="center">PaperlessBillingYes</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">0.3044672709</td>
+<td align="center">1.3559025</td>
+<td align="center">PaymentMethodElectronic check</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">0.2167750381</td>
+<td align="center">1.2420647</td>
+<td align="center">SeniorCitizen</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td align="center">0.1714677932</td>
+<td align="center">1.1870459</td>
+<td align="center">PhoneServiceYes</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td align="center">0.1473749979</td>
+<td align="center">1.1587884</td>
+<td align="center">DeviceProtectionYes</td>
+</tr>
+<tr>
+<td align="center">11</td>
+<td align="center">0.0260418496</td>
+<td align="center">1.0263839</td>
+<td align="center">OnlineBackupYes</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td align="center">0.0003289402</td>
+<td align="center">1.0003290</td>
+<td align="center">TotalCharges</td>
+</tr>
+<tr>
+<td align="center">13</td>
+<td align="center">-0.0003839967</td>
+<td align="center">0.9996161</td>
+<td align="center">PartnerYes</td>
+</tr>
+<tr>
+<td align="center">14</td>
+<td align="center">-0.0218327330</td>
+<td align="center">0.9784039</td>
+<td align="center">genderMale</td>
+</tr>
+<tr>
+<td align="center">15</td>
+<td align="center">-0.0403435284</td>
+<td align="center">0.9604594</td>
+<td align="center">MonthlyCharges</td>
+</tr>
+<tr>
+<td align="center">16</td>
+<td align="center">-0.0575871944</td>
+<td align="center">0.9440396</td>
+<td align="center">PaymentMethodMailed check</td>
+</tr>
+<tr>
+<td align="center">17</td>
+<td align="center">-0.0605875758</td>
+<td align="center">0.9412113</td>
+<td align="center">tenure</td>
+</tr>
+<tr>
+<td align="center">18</td>
+<td align="center">-0.0877918170</td>
+<td align="center">0.9159515</td>
+<td align="center">PaymentMethodCredit card (automatic)</td>
+</tr>
+<tr>
+<td align="center">19</td>
+<td align="center">-0.1484878218</td>
+<td align="center">0.8620105</td>
+<td align="center">DependentsYes</td>
+</tr>
+<tr>
+<td align="center">20</td>
+<td align="center">-0.1804968061</td>
+<td align="center">0.8348553</td>
+<td align="center">TechSupportYes</td>
+</tr>
+<tr>
+<td align="center">21</td>
+<td align="center">-0.2054200359</td>
+<td align="center">0.8143052</td>
+<td align="center">OnlineSecurityYes</td>
+</tr>
+<tr>
+<td align="center">22</td>
+<td align="center">-0.6607952874</td>
+<td align="center">0.5164405</td>
+<td align="center">ContractOne year</td>
+</tr>
+<tr>
+<td align="center">23</td>
+<td align="center">-1.3571062357</td>
+<td align="center">0.2574046</td>
+<td align="center">ContractTwo year</td>
+</tr>
+<tr>
+<td align="center">24</td>
+<td align="center">-1.7862947193</td>
+<td align="center">0.1675800</td>
+<td align="center">InternetServiceNo</td>
+</tr>
+</tbody>
+</table>
+<h6 id="contract-variable--is-in-our-first-agenda--and-we-prefer-clients-who-are-not-using-fiber-optic">contract variable  is in our first agenda , and we prefer clients who are not using Fiber optic</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">ggplot</span>(<span style="color:#a6e22e">filter</span>(item,<span style="color:#f92672">!</span><span style="color:#a6e22e">is.na</span>(odds)),<span style="color:#a6e22e">aes</span>(<span style="color:#a6e22e">reorder</span>(name, <span style="color:#f92672">-</span>odds),odds)) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_bar</span>(stat <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;identity&#34;</span>)<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">theme</span>(axis.text.x <span style="color:#f92672">=</span> <span style="color:#a6e22e">element_text</span>(angle <span style="color:#f92672">=</span> <span style="color:#ae81ff">45</span>,hjust <span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">scale_y_continuous</span>(breaks <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#a6e22e">seq</span>(<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">0.5</span>)))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_vline</span>(xintercept <span style="color:#f92672">=</span> <span style="color:#ae81ff">13.5</span>,size <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_hline</span>(yintercept <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,size <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>)<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_label</span>(data <span style="color:#f92672">=</span> <span style="color:#a6e22e">data.frame</span>(a <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;negative effects&#34;</span>,<span style="color:#e6db74">&#34;positive effects&#34;</span>),
+                               b <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#ae81ff">6.5</span>,<span style="color:#ae81ff">19.5</span>),
+                               c <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#ae81ff">4.5</span>,<span style="color:#ae81ff">4.5</span>)),
+             <span style="color:#a6e22e">aes</span>(x <span style="color:#f92672">=</span> b,y <span style="color:#f92672">=</span> c, label <span style="color:#f92672">=</span> a), size <span style="color:#f92672">=</span><span style="color:#ae81ff">20</span>,colour <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;white&#34;</span>,fill <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;grey70&#34;</span>)<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">labs</span>(x <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;item&#34;</span>)
+</code></pre></div><p><img src="/telco_customer_churn/5.png" alt="1"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">pre <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">predict</span>(m_glm)
+
+prob <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">/</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">+</span><span style="color:#a6e22e">exp</span>(<span style="color:#f92672">-</span>pre))  
+<span style="color:#a6e22e">summary</span>(prob)
+</code></pre></div><table>
+<thead>
+<tr>
+<th align="center">Min.</th>
+<th align="center">1st Qu.</th>
+<th align="center">Median</th>
+<th align="center">Mean</th>
+<th align="center">3rd Qu.</th>
+<th align="center">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">0.001156</td>
+<td align="center">0.043873</td>
+<td align="center">0.195270</td>
+<td align="center">0.265785</td>
+<td align="center">0.462907</td>
+<td align="center">0.853240</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">y_true <span style="color:#f92672">&lt;-</span> retention<span style="color:#f92672">$</span>Churn <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>
+oidx <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">order</span>(<span style="color:#f92672">-</span>prob)
+
+recall <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cumsum</span>(y_true[oidx])<span style="color:#f92672">/</span><span style="color:#a6e22e">sum</span>(y_true)
+specifity <span style="color:#f92672">&lt;-</span> (<span style="color:#a6e22e">sum</span>(<span style="color:#f92672">!</span>y_true)<span style="color:#f92672">-</span> <span style="color:#a6e22e">cumsum</span>(<span style="color:#f92672">!</span>y_true))<span style="color:#f92672">/</span><span style="color:#a6e22e">sum</span>(<span style="color:#f92672">!</span>y_true)
+
+df_roc <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data.frame</span>(recall <span style="color:#f92672">=</span> recall,
+                     specifity <span style="color:#f92672">=</span> specifity)
+
+<span style="color:#a6e22e">ggplot</span>(df_roc, <span style="color:#a6e22e">aes</span>(specifity, recall)) <span style="color:#f92672">+</span>
+   <span style="color:#a6e22e">geom_line</span>() <span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">geom_line</span>(data <span style="color:#f92672">=</span> <span style="color:#a6e22e">data.frame</span>(a <span style="color:#f92672">=</span> <span style="color:#a6e22e">seq</span>(<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0.01</span>),
+                              b <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">seq</span>(<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0.01</span>) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>),
+            <span style="color:#a6e22e">aes</span>(a,b))<span style="color:#f92672">+</span>
+  <span style="color:#a6e22e">scale_x_reverse</span>()
+
+</code></pre></div><p><img src="/telco_customer_churn/6.png" alt="1"></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">sum</span>(df_roc<span style="color:#f92672">$</span>recall[<span style="color:#ae81ff">-1</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">diff</span>(<span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> df_roc<span style="color:#f92672">$</span>specifity) )
+
+[1] <span style="color:#ae81ff">0.7542883</span>
+</code></pre></div><h6 id="075-is-a-moderate-value-we-still-need-to-do-somthing-about-like-feature-engineering">0.75 is a moderate value, we still need to do somthing about like feature engineering</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">rf <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">randomForest</span>(Churn <span style="color:#f92672">~</span> .,importance <span style="color:#f92672">=</span><span style="color:#66d9ef">TRUE</span>, data <span style="color:#f92672">=</span> retention[,<span style="color:#ae81ff">-1</span>])
+</code></pre></div><h6 id="error-the-response-has-five-or-fewer-unique-values--are-you-sure-you-want-to-do-regression">error :The response has five or fewer unique values.  Are you sure you want to do regression,</h6>
+<h6 id="the-response-variable-should-be-in-type-of-factor">the response variable should be in type of factor</h6>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">pre <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">predict</span>(rf)
+
+<span style="color:#a6e22e">confusionMatrix</span>(pre, retention<span style="color:#f92672">$</span>Churn) <span style="color:#f92672">:</span>
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">1</span>
+         <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">4664</span>  <span style="color:#ae81ff">931</span>
+         <span style="color:#ae81ff">1</span>  <span style="color:#ae81ff">499</span>  <span style="color:#ae81ff">938</span>
+                                        
+               Accuracy <span style="color:#f92672">:</span> <span style="color:#ae81ff">0.7966</span>        
+                 <span style="color:#ae81ff">95</span>% CI <span style="color:#f92672">:</span> (<span style="color:#ae81ff">0.787</span>, <span style="color:#ae81ff">0.806</span>)
+    No Information Rate <span style="color:#f92672">:</span> <span style="color:#ae81ff">0.7342</span>        
+    P<span style="color:#f92672">-</span>Value [Acc <span style="color:#f92672">&gt;</span> NIR] <span style="color:#f92672">:</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2.2e-16</span>     
+                                        
+                  Kappa <span style="color:#f92672">:</span> <span style="color:#ae81ff">0.4375</span>        
+                                        
+ Mcnemar<span style="color:#e6db74">&#39;s Test P-Value : &lt; 2.2e-16     
+</span><span style="color:#e6db74">                                        
+</span><span style="color:#e6db74">            Sensitivity : 0.9034        
+</span><span style="color:#e6db74">            Specificity : 0.5019        
+</span><span style="color:#e6db74">         Pos Pred Value : 0.8336        
+</span><span style="color:#e6db74">         Neg Pred Value : 0.6527        
+</span><span style="color:#e6db74">             Prevalence : 0.7342        
+</span><span style="color:#e6db74">         Detection Rate : 0.6633        
+</span><span style="color:#e6db74">   Detection Prevalence : 0.7956        
+</span><span style="color:#e6db74">      Balanced Accuracy : 0.7026        
+</span><span style="color:#e6db74">                                        
+</span><span style="color:#e6db74">       &#39;</span>Positive<span style="color:#e6db74">&#39;</span><span style="color:#960050;background-color:#1e0010"> Class : 0    </span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">varImpPlot</span>(rf,type <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>)
+<span style="color:#a6e22e">varImpPlot</span>(rf,type <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>)
+</code></pre></div><p><img src="/telco_customer_churn/7.png" alt="1">
+<img src="/telco_customer_churn/8.png" alt="1"></p>
+<h5 id="base-on-rf-model--tenure-contract-and-charge-is-the-most-im-portant--which-is-consistant-to-our-initial-expect">base on rf model , tenure, contract, and charge is the most im portant , which is consistant to our initial expect</h5>
+<h5 id="feature-engineering-in-next-couple-of-days---add-this-part-later">feature engineering in next couple of days  , add this part later</h5>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

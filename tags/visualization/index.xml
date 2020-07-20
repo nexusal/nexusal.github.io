@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>visualization on Dive into nexus of everything</title>
+    <link>./tags/visualization/</link>
+    <description>Recent content in visualization on Dive into nexus of everything</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Jul 2020 09:30:00 +0800</lastBuildDate>
+    
+	<atom:link href="./tags/visualization/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Netfix</title>
+      <link>./netfix/netfix/</link>
+      <pubDate>Tue, 14 Jul 2020 09:30:00 +0800</pubDate>
+      
+      <guid>./netfix/netfix/</guid>
+      <description>the datasets was downloaded from kaggle , you can click this to check out the original datasets library(tidyverse) library(RColorBrewer) Sys.setlocale(&amp;quot;LC_ALL&amp;quot;, &amp;quot;English&amp;quot;) ### to handle the language issue netflix &amp;lt;- read.csv(&amp;quot;netflix_titles.csv&amp;quot;, stringsAsFactors = FALSE) str(netflix) any(is.na(netflix)) netflix$type &amp;lt;- as.factor(netflix$type) netflix$rating &amp;lt;- as.factor(netflix$rating) netflix_year &amp;lt;- netflix %&amp;gt;% group_by(release_year) %&amp;gt;% summarise(n = n()) %&amp;gt;% arrange(desc(n)) ggplot(netflix_year, aes(reorder(release_year, -release_year),n)) + geom_bar(stat = &amp;quot;identity&amp;quot;,fill = &amp;quot;lightblue&amp;quot;)+ theme_bw()+ theme(axis.text.x = element_text(angle = 45, hjust = 1,size = 15))+ labs(x = &amp;quot;year&amp;quot;, y = &amp;quot;number&amp;quot;) released movie or TVshows has a outbreak since we stepped in 21 century.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>cash flow  of four prominent companies(original data filter by lin le) &middot; Dive into nexus of everything</title>
+  <meta name="description" content="a brief report of four companies based on cash flow" />
+
+  
+  <link type="text/css" rel="stylesheet" href="./css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="./css/poole.css">
+  <link type="text/css" rel="stylesheet" href="./css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="./css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="./"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="./">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>cash flow  of four prominent companies(original data filter by lin le)</h1>
+  <time datetime=2020-07-13T16:00:00&#43;0800 class="post-date">Mon, Jul 13, 2020</time>
+  <h4 id="this-is-our-stocks">this is our stocks:</h4>
+<p><a href="https://xueqiu.com/S/SH603977">603977,国泰集团</a><br>
+<a href="https://xueqiu.com/S/SZ002669">002669,康达新材</a><br>
+<a href="https://xueqiu.com/S/SH603601">603601,再升科技</a><br>
+<a href="https://xueqiu.com/S/SZ002444">002444,巨星科技</a></p>
+<pre><code class="language-{r}" data-lang="{r}">library(tidyverse)
+library(RColorbrewer)
+cashflow &lt;- read.csv(&quot;FI_T61.csv&quot;, stringsAsFactors = FALSE, encoding = &quot;UTF-8&quot;)
+colnames(cashflow)[1] &lt;- &quot;id&quot;
+core_stock &lt;- c(&quot;603977&quot;,&quot;002669&quot;,&quot;603601&quot;,&quot;002444&quot;)
+cashflow$id &lt;- as.character(cashflow$id)
+
+for (i in 1:72350) {
+  a &lt;- nchar(cashflow[i,1])
+  if(! a == 6  ){
+    cashflow[i,1] &lt;- paste0(paste0(rep(0,6-a),collapse = &quot;&quot;),cashflow[i,1])
+  }else{}
+}
+
+
+df_core &lt;- filter(cashflow, id %in% core_stock, Typrep == &quot;A&quot;)
+</code></pre><h4 id="inputting-the-industrial-of-every-stockextract-from-同花顺">inputting the industrial of every stock(extract from 同花顺)</h4>
+<pre><code class="language-{r}" data-lang="{r}">industrial &lt;- read.csv(&quot;个股当前数据(同花顺导出).csv&quot;, stringsAsFactors = FALSE)
+ industrial[,1] &lt;- str_extract(industrial[,1],pattern = &quot;\\d+&quot;) %&gt;% unlist()
+ industrial &lt;- industrial[c(&quot;代码&quot;,&quot;名称&quot;,&quot;细分行业&quot;,&quot;所属行业&quot;)]
+colnames(industrial) &lt;- c(&quot;id&quot;,&quot;name&quot;,&quot;sub_industry&quot;,&quot;industry&quot;)
+ 
+ df_core &lt;- df_core %&gt;% left_join(industrial)
+cashflow &lt;- left_join(cashflow, industrial)
+</code></pre><h3 id="print-the-industry-of-our-stocks">print the industry of our stocks</h3>
+<pre><code class="language-{r}" data-lang="{r}">select(df_core,id,name,sub_industry,industry) %&gt;% distinct(id,.keep_all = TRUE)
+</code></pre><table>
+<thead>
+<tr>
+<th align="center">id</th>
+<th align="center">name</th>
+<th align="center">sub_industry</th>
+<th align="center">industry</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">603977</td>
+<td align="center">国泰集团</td>
+<td align="center">民爆用品</td>
+<td align="center">化学制品</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">603601</td>
+<td align="center">再升科技</td>
+<td align="center">玻纤</td>
+<td align="center">化工新材料</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">002669</td>
+<td align="center">康达新材</td>
+<td align="center">其他化学制品</td>
+<td align="center">化学制品</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">002444</td>
+<td align="center">巨星科技</td>
+<td align="center">其它通用机械</td>
+<td align="center">通用设备</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="group-by-their-industry--in-cashflow--first-i-want-to-filter-by-their-sub_industry">group by their industry  in cashflow  first. I want to filter by their sub_industry</h4>
+<pre><code class="language-{r}" data-lang="{r}">options(scipen = 200)
+
+bomb &lt;- filter(cashflow,sub_industry == &quot;民爆用品&quot;, Typrep == &quot;A&quot;, name != &quot;江南化工&quot;)
+
+ggplot(bomb,aes(as.Date(Accper),as.numeric(F061301B),color = name))+
+  geom_line(size =2 )+
+  scale_color_brewer(palette = &quot;Set3&quot;)+
+  theme(legend.position = c(0.75,0.3),
+        legend.key.width = unit(2, &quot;cm&quot;),
+        legend.key.height = unit(2, &quot;cm&quot;),
+        legend.direction = &quot;horizontal&quot;,
+        legend.text = element_text(size = 15)) +
+  labs(y = &quot;cashflow(￥)&quot;, x = &quot;date&quot;)
+</code></pre><p><img src="/stock/2.png" alt="1"></p>
+<pre><code class="language-{r}" data-lang="{r}">glass &lt;- filter(cashflow,sub_industry == &quot;玻纤&quot;, Typrep == &quot;A&quot;)
+
+ggplot(glass,aes(as.Date(Accper),as.numeric(F061301B),color = name))+
+  geom_line(size =2 )+
+  scale_color_brewer(palette = &quot;Set3&quot;)+
+  theme(legend.position = c(0.5,0.9),
+        legend.key.width = unit(1.2, &quot;cm&quot;),
+        legend.key.height = unit(1.2, &quot;cm&quot;),
+        legend.direction = &quot;horizontal&quot;)
+</code></pre><p><img src="/stock/3.png" alt="2"></p>
+<h5 id="looks-like-再升科技-maintains-a-pretty-stable-cash-flow-level-within--last-2-years-though-their-management-is-not-better-than-others-based-on-cash-flow">looks like 再升科技 maintains a pretty stable cash flow level within  last 2 years, though their management is not better than others based on cash flow.</h5>
+<h4 id="since-there-are-so-many-companies-in-this-industry--i-choose-boxplot-instead-the-x-axis-would-be-the--companies-in-our-datasets">since there are so many companies in this industry , I choose boxplot instead, the x axis would be the  companies in our datasets</h4>
+<pre><code class="language-{r}" data-lang="{r}">chemi &lt;- filter(cashflow,sub_industry == &quot;其他化学制品&quot;, Typrep == &quot;A&quot;)
+
+asd &lt;- data.frame(a = c(2500000000,1250000000),b = c(52,52))
+which(unique(chemi$name) == &quot;康达新材&quot;)
+
+ggplot(chemi,aes(name,as.numeric(F061301B))) +
+  geom_boxplot() +
+  theme_bw() +
+  geom_text(data = data.frame(a = 52,b = 10000000000,c = &quot;there are 103 companies in this industry\n(其他化学制品)&quot;),
+            aes(x = a ,y = b,label = c),size = 18)+
+  theme(axis.text.x = element_blank()) +
+  geom_path(data = asd,aes(b,a),colour = &quot;grey50&quot;,
+            arrow = arrow(length = unit(0.25, &quot;cm&quot;)),size = 3)+
+  labs(y = &quot;cashflow(￥)&quot;, x = NULL)
+
+</code></pre><p><img src="/stock/4.png" alt="2"></p>
+<h5 id="similar-as-previous-one--康达新材-doesnt-have-significant-cash-flow-level">similar as previous one , 康达新材 doesn&rsquo;t have significant cash flow level</h5>
+<h6 id="note-in-geom_text-function--ggplot-would-throw-out-an-error-that-mapping-must-be-created-by-aes-when-not-specifying-data-arguement">note in geom_text function : ggplot would throw out an error that <code>mapping</code> must be created by <code>aes()</code> when not specifying <code>data</code> arguement</h6>
+<pre><code class="language-{r}" data-lang="{r}">utility &lt;- filter(cashflow,sub_industry == &quot;其它通用机械&quot;, Typrep == &quot;A&quot;)
+
+zxc &lt;- data.frame(a = c(1000000000,350000000),b = c(16,17))
+ggplot(utility,aes(name,as.numeric(F061301B)))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 45,size = 20,hjust = 1)) +
+  geom_path(data = zxc,aes(b,a),colour = &quot;grey50&quot;,
+            arrow = arrow(length = unit(0.35, &quot;cm&quot;)),size = 2)
+</code></pre><p><img src="/stock/5.png" alt="2"></p>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

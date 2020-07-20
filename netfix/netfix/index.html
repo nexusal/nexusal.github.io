@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Netfix &middot; Dive into nexus of everything</title>
+  <meta name="description" content="trends in tv&amp;movies" />
+
+  
+  <link type="text/css" rel="stylesheet" href="./css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="./css/poole.css">
+  <link type="text/css" rel="stylesheet" href="./css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="./css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="./"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="./">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Netfix</h1>
+  <time datetime=2020-07-14T09:30:00&#43;0800 class="post-date">Tue, Jul 14, 2020</time>
+  <h2 id="the-datasets-was-downloaded-from-kaggle--you-can-click-thishttpswwwkagglecomshivambnetflix-shows-to-check-out-the-original-datasets">the datasets was downloaded from kaggle , you can click <a href="https://www.kaggle.com/shivamb/netflix-shows">this</a> to check out the original datasets</h2>
+<pre><code class="language-{r}" data-lang="{r}">library(tidyverse)
+
+library(RColorBrewer)
+
+Sys.setlocale(&quot;LC_ALL&quot;, &quot;English&quot;)  ### to handle the language issue
+netflix &lt;- read.csv(&quot;netflix_titles.csv&quot;, stringsAsFactors = FALSE)
+
+str(netflix)
+</code></pre><pre><code class="language-{r}" data-lang="{r}">any(is.na(netflix))
+</code></pre><pre><code class="language-{r}" data-lang="{r}">netflix$type &lt;- as.factor(netflix$type)
+netflix$rating &lt;- as.factor(netflix$rating)
+</code></pre><pre><code class="language-{r}" data-lang="{r}">netflix_year &lt;- netflix %&gt;% group_by(release_year) %&gt;% summarise(n = n()) %&gt;% arrange(desc(n))
+
+ggplot(netflix_year, aes(reorder(release_year, -release_year),n)) + 
+  geom_bar(stat = &quot;identity&quot;,fill = &quot;lightblue&quot;)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size = 15))+
+  labs(x = &quot;year&quot;, y = &quot;number&quot;)
+</code></pre><p><img src="/netfix/1.png" alt="1"></p>
+<h4 id="released-movie-or-tvshows-has-a-outbreak-since-we-stepped-in-21-century">released movie or TVshows has a outbreak since we stepped in 21 century.</h4>
+<pre><code class="language-{r}" data-lang="{r}">netflix_country &lt;- netflix %&gt;% group_by(country) %&gt;% summarise(n = n()) %&gt;% arrange(desc(n))
+
+ggplot(netflix_country[1:20,], aes(reorder(country, -n),n)) + 
+  geom_bar(stat = &quot;identity&quot;,fill = &quot;lightblue&quot;)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 15))+
+  labs(x = &quot;country&quot;,&quot;number&quot;)
+</code></pre><p><img src="/netfix/2.png" alt="2"></p>
+<h4 id="us-has-the-most-movies-and-tvshows-in-the-world">US has the most movies and TVshows in the world</h4>
+<pre><code class="language-{r}" data-lang="{r}">netflix_type &lt;- filter(netflix, country %in% netflix_country$country[1:20])
+
+ggplot(netflix_type, aes(country,fill = type)) + geom_bar(stat = &quot;count&quot;)+
+  theme(axis.text.x = element_text(angle = 45))+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 15))+
+  labs(x = &quot;country&quot;)
+</code></pre><p><img src="/netfix/3.png" alt="3"></p>
+<h4 id="us-primarily-focus-on-the-moviesindia-even-has-larger-margin">US primarily focus on the movies,India even has larger margin.</h4>
+<pre><code class="language-{r}" data-lang="{r}">netflix_US &lt;- filter(netflix, country == &quot;United States&quot; &amp; release_year &gt; 1980)
+ggplot(netflix_US, aes(release_year, fill = type)) +
+  geom_bar(stat = &quot;count&quot;)+
+  labs(title = &quot;US&quot;)
+</code></pre><p><img src="/netfix/4.png" alt="4"></p>
+<h4 id="us-has-been-much-more-focusing-in-tv-show-last-decades">US has been much more focusing in tv show last decades.</h4>
+<pre><code class="language-{r}" data-lang="{r}">netflix_CHN &lt;- filter(netflix, country == &quot;China&quot;)
+ggplot(netflix_CHN, aes(release_year, fill = type)) +
+  geom_bar(stat = &quot;count&quot;)+
+  labs(title = &quot;China&quot;)
+
+</code></pre><p><img src="/netfix/China.png" alt="China"></p>
+<pre><code class="language-{r}" data-lang="{r}">netflix_UK &lt;- filter(netflix, country == &quot;United Kingdom&quot; &amp; release_year &gt; 1995)
+ggplot(netflix_UK, aes(release_year, fill = type)) +
+  geom_bar(stat = &quot;count&quot;)
+</code></pre><p><img src="/netfix/5.png" alt="5"></p>
+<pre><code class="language-{r}" data-lang="{r}">netflix_movie &lt;- mutate(netflix_movie, durational = str_extract_all(duration,&quot;\\d+&quot;))
+
+ggplot(netflix_movie, aes(country,as.numeric(durational))) +
+  geom_boxplot(fill = c(brewer.pal(n = 12, &quot;Paired&quot;),brewer.pal(n = 8,&quot;Set2&quot;)))+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1 , size = 15))+
+  labs(y = &quot;duration&quot;)
+</code></pre><p><img src="/netfix/8.png" alt="8"></p>
+<h4 id="india-south-korean-and-ukusa-prefer-longer-movie-duration-than-other-country">India south korean and UK&amp;USA prefer longer movie duration than other country.</h4>
+<pre><code class="language-{r}" data-lang="{r}">country_t &lt;- netflix_country$country[1:20]
+
+netflix_movie &lt;- filter(netflix, country %in% country_t &amp; type == &quot;Movie&quot;) 
+netflix_TVshow &lt;- filter(netflix, country %in% country_t &amp; type == &quot;TV Show&quot;)
+
+netflix_rating &lt;- netflix %&gt;% filter(country %in% country_t[1:10])
+netflix_rating &lt;- netflix %&gt;% filter(country %in% country_t[1:10])
+
+ggplot(netflix_rating, aes(rating ))+
+  geom_bar(stat = &quot;count&quot;)+
+  facet_wrap(~country,ncol = 3,scales = &quot;free_y&quot;)
+</code></pre><p><img src="/netfix/6.png" alt="6"></p>
+<h4 id="us-tends-to-presents-more-restriction-movie-than-others">US tends to presents more restriction movie than others</h4>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

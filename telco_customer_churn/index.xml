@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Telco_customer_churns on Dive into nexus of everything</title>
+    <link>./telco_customer_churn/</link>
+    <description>Recent content in Telco_customer_churns on Dive into nexus of everything</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 18 Jul 2020 16:00:00 +0800</lastBuildDate>
+    
+	<atom:link href="./telco_customer_churn/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>telco customer churn</title>
+      <link>./telco_customer_churn/main/</link>
+      <pubDate>Sat, 18 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./telco_customer_churn/main/</guid>
+      <description>original datasets come from kaggle, click here to check you could see the metadata in Data Explorer of every column when you scroll down library(tidyverse) library(tidyselect) library(pROC) library(randomForest) library(caret) library(cowplot) library(ggcorrplot) retention &amp;lt;- read.csv(&amp;#39;WA_Fn-UseC_-Telco-Customer-Churn.csv&amp;#39;,stringsAsFactors = FALSE) ###### checking if there are any missing value  n_miss &amp;lt;- function(x) n &amp;lt;- sum(is.na(x)) return(n) apply(retention,2,n_miss) only totalcharges has 11 missing values, consider we have more than 7000 observations , I&amp;rsquo;m just gonna discard all of these retention &amp;lt;- filter(retention,!</description>
+    </item>
+    
+  </channel>
+</rss>

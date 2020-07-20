@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Stocks on Dive into nexus of everything</title>
+    <link>./stock/</link>
+    <description>Recent content in Stocks on Dive into nexus of everything</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 13 Jul 2020 16:00:00 +0800</lastBuildDate>
+    
+	<atom:link href="./stock/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>cash flow  of four prominent companies(original data filter by lin le)</title>
+      <link>./stock/stock/</link>
+      <pubDate>Mon, 13 Jul 2020 16:00:00 +0800</pubDate>
+      
+      <guid>./stock/stock/</guid>
+      <description>this is our stocks: 603977,国泰集团
+002669,康达新材
+603601,再升科技
+002444,巨星科技
+library(tidyverse)library(RColorbrewer)cashflow &amp;lt;- read.csv(&amp;quot;FI_T61.csv&amp;quot;, stringsAsFactors = FALSE, encoding = &amp;quot;UTF-8&amp;quot;)colnames(cashflow)[1] &amp;lt;- &amp;quot;id&amp;quot;core_stock &amp;lt;- c(&amp;quot;603977&amp;quot;,&amp;quot;002669&amp;quot;,&amp;quot;603601&amp;quot;,&amp;quot;002444&amp;quot;)cashflow$id &amp;lt;- as.character(cashflow$id)for (i in 1:72350) {a &amp;lt;- nchar(cashflow[i,1])if(! a == 6 ){cashflow[i,1] &amp;lt;- paste0(paste0(rep(0,6-a),collapse = &amp;quot;&amp;quot;),cashflow[i,1])}else{}}df_core &amp;lt;- filter(cashflow, id %in% core_stock, Typrep == &amp;quot;A&amp;quot;)inputting the industrial of every stock(extract from 同花顺) industrial &amp;lt;- read.csv(&amp;quot;个股当前数据(同花顺导出).csv&amp;quot;, stringsAsFactors = FALSE)industrial[,1] &amp;lt;- str_extract(industrial[,1],pattern = &amp;quot;\\d+&amp;quot;) %&amp;gt;% unlist()industrial &amp;lt;- industrial[c(&amp;quot;代码&amp;quot;,&amp;quot;名称&amp;quot;,&amp;quot;细分行业&amp;quot;,&amp;quot;所属行业&amp;quot;)]colnames(industrial) &amp;lt;- c(&amp;quot;id&amp;quot;,&amp;quot;name&amp;quot;,&amp;quot;sub_industry&amp;quot;,&amp;quot;industry&amp;quot;)df_core &amp;lt;- df_core %&amp;gt;% left_join(industrial)cashflow &amp;lt;- left_join(cashflow, industrial)print the industry of our stocks select(df_core,id,name,sub_industry,industry) %&amp;gt;% distinct(id,.</description>
+    </item>
+    
+  </channel>
+</rss>
