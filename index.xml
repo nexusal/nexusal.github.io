@@ -6,10 +6,19 @@
     <description>Recent content on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 19 Jul 2020 16:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 03 Aug 2020 16:00:00 +0800</lastBuildDate>
     
 	<atom:link href="https://nexusal.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>应用apriori算法, 分析不同技能组合和价格之间的联系</title>
+      <link>https://nexusal.github.io/%E6%A2%A6%E5%B9%BB%E5%8F%AC%E5%94%A4%E5%85%BD%E4%BB%B7%E6%A0%BC%E9%A2%84%E6%B5%8B/apriori%E6%8A%80%E8%83%BD%E4%BB%B7%E6%A0%BC%E4%B9%8B%E9%97%B4%E7%9A%84%E8%81%94%E7%B3%BB/</link>
+      <pubDate>Mon, 03 Aug 2020 16:00:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/%E6%A2%A6%E5%B9%BB%E5%8F%AC%E5%94%A4%E5%85%BD%E4%BB%B7%E6%A0%BC%E9%A2%84%E6%B5%8B/apriori%E6%8A%80%E8%83%BD%E4%BB%B7%E6%A0%BC%E4%B9%8B%E9%97%B4%E7%9A%84%E8%81%94%E7%B3%BB/</guid>
+      <description>library(rjson)library(tidyverse)library(arules)library(magick)library(ggimage)library(hayalbaz)打开之前爬取的数据 explore &amp;lt;- filter(df_pet,price != 0)skill_com &amp;lt;- explore[,21:22]skill_com$id &amp;lt;- 1:231爬取技能名字和数字代号的对应关系 test &amp;lt;- puppet$new(&amp;quot;https://xyq.cbg.163.com/cgi-bin/equipquery.py?act=show_overall_search_pet&amp;quot;)test$click(selector = &amp;quot;#btn_all_skill&amp;quot;,set_focus = FALSE)test$view()asd &amp;lt;- test$get_elements(selector = &amp;quot;#pet_skill_panel img&amp;quot;) %&amp;gt;%html_nodes(&amp;quot;img&amp;quot;) %&amp;gt;%html_attrs() ### get element 之后的是部分网页结构,nodes里面不能再用之前的selector, 点击列表结构查看合适的selectorsymbol &amp;lt;- sapply(asd,str_extract_all,pattern = &amp;quot;\\d+&amp;quot;,simplify = TRUE) %&amp;gt;% unlist()sk_name &amp;lt;- sapply(asd,str_extract_all,pattern = &amp;quot;[\u4e00-\u9fa5]+&amp;quot;,simplify = TRUE) %&amp;gt;% unlist()sk_symbol &amp;lt;- data.frame(symbol = symbol,name= sk_name)提取所有在这个数据集中的技能 sk_set &amp;lt;- skill_com$skill_combination %&amp;gt;% str_split(pattern = &amp;quot;;&amp;quot;) %&amp;gt;% unlist() %&amp;gt;% unique()df_sk &amp;lt;- vector(mode = &amp;quot;list&amp;quot;, length = &amp;quot;94&amp;quot;)names(df_sk) &amp;lt;- c(sk_set, &amp;quot;id&amp;quot;, &amp;quot;price&amp;quot;)skill_loop &amp;lt;- skill_com$skill_combination %&amp;gt;% str_split(pattern = &amp;quot;;&amp;quot;)container &amp;lt;- matrix(nrow = 93,ncol = 231)for (i in 1:231) {hold &amp;lt;- c(sk_set, &amp;quot;price&amp;quot;) %in% skill_loop[[i]]container[,i] &amp;lt;- hold}container &amp;lt;- t(container) %&amp;gt;% as.</description>
+    </item>
     
     <item>
       <title>ted</title>

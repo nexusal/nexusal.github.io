@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>应用apriori算法, 分析不同技能组合和价格之间的联系 &middot; Dive into nexus of everything</title>
+  <meta name="description" content="应用apriori算法, 分析不同技能组合和价格之间的联系" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://nexusal.github.io/"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://nexusal.github.io/">Home</a> </li>
+        <li><a href="./about.html"> About </a></li>
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>应用apriori算法, 分析不同技能组合和价格之间的联系</h1>
+  <time datetime=2020-08-03T16:00:00&#43;0800 class="post-date">Mon, Aug 3, 2020</time>
+  <pre><code>library(rjson)
+library(tidyverse)
+library(arules)
+library(magick)
+library(ggimage)
+library(hayalbaz)
+</code></pre><h4 id="打开之前爬取的数据">打开之前爬取的数据</h4>
+<pre><code>explore &lt;- filter(df_pet,price != 0)
+
+skill_com &lt;- explore[,21:22]
+skill_com$id &lt;- 1:231
+</code></pre><h4 id="爬取技能名字和数字代号的对应关系">爬取技能名字和数字代号的对应关系</h4>
+<pre><code>test &lt;- puppet$new(&quot;https://xyq.cbg.163.com/cgi-bin/equipquery.py?act=show_overall_search_pet&quot;)
+test$click(selector = &quot;#btn_all_skill&quot;,set_focus = FALSE)
+test$view()
+asd &lt;- test$get_elements(selector = &quot;#pet_skill_panel img&quot;) %&gt;%
+  html_nodes(&quot;img&quot;) %&gt;%
+  html_attrs() ### get element 之后的是部分网页结构,nodes里面不能再用之前的selector, 点击列表结构查看合适的selector
+symbol &lt;- sapply(asd,str_extract_all,pattern = &quot;\\d+&quot;,simplify = TRUE) %&gt;% unlist()
+sk_name &lt;- sapply(asd,str_extract_all,pattern = &quot;[\u4e00-\u9fa5]+&quot;,simplify = TRUE) %&gt;% unlist()
+
+sk_symbol &lt;- data.frame(symbol = symbol,
+                        name= sk_name)
+</code></pre><h4 id="提取所有在这个数据集中的技能">提取所有在这个数据集中的技能</h4>
+<pre><code>sk_set &lt;- skill_com$skill_combination %&gt;% str_split(pattern = &quot;;&quot;)  %&gt;% unlist() %&gt;% unique()
+
+df_sk &lt;- vector(mode = &quot;list&quot;, length = &quot;94&quot;)
+names(df_sk) &lt;- c(sk_set, &quot;id&quot;, &quot;price&quot;)
+skill_loop &lt;- skill_com$skill_combination %&gt;% str_split(pattern = &quot;;&quot;)
+
+container &lt;- matrix(nrow = 93,ncol = 231)
+
+
+for (i in 1:231) {
+  hold &lt;- c(sk_set, &quot;price&quot;) %in% skill_loop[[i]]
+  container[,i] &lt;- hold
+}
+  
+container &lt;- t(container) %&gt;% as.data.frame()
+
+df_temp &lt;- data.frame(symbol = sk_set,
+                      id = 1:92) %&gt;% left_join(y = sk_symbol)
+ df_temp$name
+
+colnames(container) &lt;- c(df_temp$name,  &quot;price&quot;)
+</code></pre><h4 id="绘制频率图-高神勇夺桂冠-连必吸偷夜-前排霸榜">绘制频率图, 高神勇夺桂冠, 连必吸偷夜 前排霸榜</h4>
+<pre><code>for( i in sk_set){
+  one &lt;- download.file(sprintf(&quot;https://cbg-xyq.res.netease.com/images/skill/%s.gif&quot;,i),destfile = sprintf(&quot;%s.gif&quot;,i),mode = &quot;wb&quot;)
+  one &lt;- image_read(sprintf(&quot;C:/Users/Administrator/Desktop/%s.gif&quot;,i))
+  one &lt;- image_convert(one,format = &quot;png&quot;)
+  image_write(one,path = sprintf(&quot;D:/%s.png&quot;,i),quality = 100,format = &quot;png&quot;)
+} ## 下载图片,并且转换
+
+url &lt;- c()
+for (i in sk_set) { ##生成所有图片的本地文件路径,作为数据框中的一列, 绘图的时候指定
+url &lt;- append(url,sprintf(&quot;D:/%s.png&quot;,i))  
+}
+
+num_skill &lt;- data.frame(cnt = apply(container,2,sum)[1:92] ,
+                        seq = colnames(container)[1:92],
+                        image = c(url))
+</code></pre><pre><code>ggplot(num_skill,aes(reorder(seq,-cnt),cnt)) + ## 用 ggimage 来一次性map所有图片,image列是图片的路径
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  geom_image(aes(image = image),size = .01)+theme(aspect.ratio = 2/3)
+</code></pre><p><img src="/%E6%A2%A6%E5%B9%BB%E5%8F%AC%E5%94%A4%E5%85%BD%E4%BB%B7%E6%A0%BC%E9%A2%84%E6%B5%8B/Rplot01.png" alt="1"></p>
+<h2 id="apriori">apriori</h2>
+<p>summary(as.numeric(explore$price))</p>
+<table>
+<thead>
+<tr>
+<th align="center">Min.</th>
+<th align="center">1st Qu.</th>
+<th align="center">Median</th>
+<th align="center">Mean</th>
+<th align="center">3rd Qu.</th>
+<th align="center">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">308.0</td>
+<td align="center">799.5</td>
+<td align="center">1555.0</td>
+<td align="center">2500.5</td>
+<td align="center">2599.0</td>
+<td align="center">30888.0</td>
+</tr>
+</tbody>
+</table>
+<h4 id="按照四分位的区间来给价格分组即将价格转化为分类变量">按照四分位的区间来给价格分组,即将价格转化为分类变量</h4>
+<pre><code>container[&quot;price&quot;] &lt;- cut(as.numeric(explore$price),
+                          breaks = c(308,799.5,1555,2599,30888),
+                          labels = c(&quot;cheap&quot;,&quot;moderate&quot;,&quot;high&quot;,&quot;extreme&quot;))
+
+
+container &lt;- as(container, &quot;transactions&quot;)
+</code></pre><pre><code>summary(container)
+
+
+
+transactions as itemMatrix in sparse format with
+ 231 rows (elements/itemsets/transactions) and
+ 96 columns (items) and a density of 0.0893759 
+
+most frequent items:
+高级神佑复生     高级必杀     高级偷袭         夜战     高级吸血      (Other) 
+         117          116          106           99           95         1449 
+
+element (itemset/transaction) length distribution:
+sizes
+ 4  5  6  7  8  9 10 11 12 13 14 
+ 1  2 28 37 51 50 32 12  8  5  5 
+
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   4.00    7.00    8.00    8.58   10.00   14.00 
+
+includes extended item information - examples:
+        labels    variables levels
+1     高级反震     高级反震   TRUE
+2     高级夜战     高级夜战   TRUE
+3 高级神佑复生 高级神佑复生   TRUE
+
+includes extended transaction information - examples:
+  transactionID
+1             1
+2             2
+3             3
+</code></pre><h5 id="参数-support-设置为003-去除一些不常见的垫书技能-最大组合数设置为14">参数 support 设置为0.03, 去除一些不常见的垫书技能, 最大组合数设置为14</h5>
+<pre><code>rules &lt;- apriori(container,
+                 parameter = list(support = 0.03, confidence = 0.6,maxlen = 14))
+</code></pre><h5 id="按分类目标筛选子集">按分类目标筛选子集</h5>
+<pre><code>p_ex &lt;- subset(rules, subset = rhs %in% &quot;price=extreme&quot; &amp; lift &gt;=  1)
+p_mo &lt;- subset(rules, subset = rhs %in% &quot;price=moderate&quot; &amp; lift &gt;=  1)
+p_high &lt;- subset(rules, subset = rhs %in% &quot;price=high&quot; &amp; lift &gt;=  1)
+p_ch &lt;- subset(rules, subset = rhs %in% &quot;price=cheap&quot; &amp; lift &gt;=  1)
+</code></pre><pre><code>write(p_ex, file = &quot;cheap.csv&quot;, sep = &quot;,&quot;, col.names = NA)
+</code></pre><h4 id="apriori-算法计算频繁项集-我自己划分了4个等级的价位-以价位的档次为目标-输出了技能组合和价格的关系并且以这个为依据-当获得新的数据集时-apriori-的预测结果可以添加回数据集-作为一个新的变量参与模型的拟合期待在结合了资质属性灵性特性后-预测的最终价格结果可以有非常小的残差">apriori 算法计算频繁项集, 我自己划分了4个等级的价位, 以价位的档次为目标, 输出了技能组合和价格的关系,并且以这个为依据, 当获得新的数据集时, apriori 的预测结果可以添加回数据集, 作为一个新的变量参与模型的拟合,期待在结合了资质属性,灵性特性后, 预测的最终价格结果可以有非常小的残差.</h4>
+<h4 id="这四个价位的技能组合结果的解释">这四个价位的技能组合结果的解释</h4>
+<h4 id="extreme">extreme</h4>
+<pre><code>inspect(head(p_ex, n = 12, by = &quot;confidence&quot;))
+
+    lhs                        rhs             support    confidence coverage   lift     count
+[1]  {凝光炼彩}              =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[2]  {高级招架}              =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[3]  {高级敏捷,凝光炼彩}     =&gt; {price=extreme} 0.03030303 1          0.03030303 4.052632 7    
+[4]  {凝光炼彩,高级隐身}     =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[5]  {高级法术波动,凝光炼彩} =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[6]  {高级法术暴击,凝光炼彩} =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[7]  {高级魔之心,凝光炼彩}   =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[8]  {高级幸运,凝光炼彩}     =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[9]  {高级神佑复生,凝光炼彩} =&gt; {price=extreme} 0.03030303 1          0.03030303 4.052632 7    
+[10] {高级防御,高级敏捷}     =&gt; {price=extreme} 0.03030303 1          0.03030303 4.052632 7    
+[11] {高级幸运,高级敏捷}     =&gt; {price=extreme} 0.03463203 1          0.03463203 4.052632 8    
+[12] {高级法术波动,高级隐身} =&gt; {price=extreme} 0.03896104 1          0.03896104 4.052632 9 
+</code></pre><h5 id="extreme-价格-即我认为顶尖的宝宝-极致的属性和技能-inspect-给出了相应的结果-我重点关注lift一列可以翻译为抬升吧-这个值越高-与响应变量的关系越强详细可以看arules-的官方介绍文档arules-的算法结果认为-有凝光炼彩技能的宝宝全都属于极致价格一档-梦幻在超凡入圣资料片放出以前我就已经没玩了-后来知道这个技能是化圣才能携带的妙华天女的专属技能-所以是一个特殊技能没有兽决只能合宠-自然价值很高-这个有一定的pk价值再来谈谈后面的集合-有招架-敏捷-幸运-防御-隐身等较为实用的技能我认为在已经打了输出类的兽决之后接着还有技能格子继续补充这些技能那这一定是一个多技能宝宝10技能左右-多技能宝宝胚子本身就具有很高的价值apriori算法能够捕捉到这潜在的联系一种间接的联系另外可以看到-凝光炼彩更多出现在法宝宝身上-这也可以理解-攻宝宝pk时可以吸血保持自身的生存能力法宝宝长期以来并没有相对应吸血的技能-凝光技能无疑在pk-上为法宝宝生存能力提供很好的补充这个技能受到服战老板的青睐-价格水涨船高也是很正常的">extreme 价格, 即我认为顶尖的宝宝, 极致的属性和技能, inspect 给出了相应的结果, 我重点关注lift一列,可以翻译为抬升吧, 这个值越高, 与响应变量的关系越强,详细可以看arules 的官方介绍文档arules 的算法结果认为, 有凝光炼彩技能的宝宝全都属于极致价格一档, 梦幻在超凡入圣资料片放出以前我就已经没玩了, 后来知道这个技能是化圣才能携带的妙华天女的专属技能, 所以是一个特殊技能,没有兽决,只能合宠, 自然价值很高, 这个有一定的pk价值.再来谈谈后面的集合, 有招架 敏捷 幸运 防御 隐身等较为实用的技能,我认为在已经打了输出类的兽决之后,接着还有技能格子继续补充这些技能,那这一定是一个多技能宝宝(10技能左右), 多技能宝宝胚子本身就具有很高的价值,apriori算法能够捕捉到这潜在的联系,一种间接的联系另外可以看到, 凝光炼彩更多出现在法宝宝身上, 这也可以理解, 攻宝宝PK时可以吸血保持自身的生存能力法宝宝长期以来并没有相对应吸血的技能, 凝光技能无疑在PK 上为法宝宝生存能力提供很好的补充.这个技能受到服战老板的青睐, 价格水涨船高也是很正常的.</h5>
+<h4 id="high">high</h4>
+<pre><code>inspect(head(p_high, n = 12, by = &quot;confidence&quot;))
+
+     lhs                                                        rhs          support    confidence coverage   lift     count
+[1]  {高级感知,高级连击,高级吸血}                            =&gt; {price=high} 0.03463203 0.7272727  0.04761905 2.947368  8   
+[2]  {高级感知,高级连击,高级吸血,高级偷袭}                   =&gt; {price=high} 0.03463203 0.7272727  0.04761905 2.947368  8   
+[3]  {高级夜战,高级感知,高级连击,高级吸血}                   =&gt; {price=high} 0.03030303 0.7000000  0.04329004 2.836842  7   
+[4]  {高级感知,高级连击,高级吸血,高级必杀}                   =&gt; {price=high} 0.03030303 0.7000000  0.04329004 2.836842  7   
+[5]  {高级夜战,高级感知,高级连击,高级吸血,高级偷袭}          =&gt; {price=high} 0.03030303 0.7000000  0.04329004 2.836842  7   
+[6]  {高级感知,高级连击,高级吸血,高级偷袭,高级必杀}          =&gt; {price=high} 0.03030303 0.7000000  0.04329004 2.836842  7   
+[7]  {高级神佑复生,高级连击,高级偷袭,夜战}                   =&gt; {price=high} 0.04329004 0.6666667  0.06493506 2.701754 10   
+[8]  {高级神佑复生,高级连击,高级偷袭,高级必杀,夜战}          =&gt; {price=high} 0.04329004 0.6666667  0.06493506 2.701754 10   
+[9]  {高级夜战,高级感知,高级连击,高级偷袭}                   =&gt; {price=high} 0.03030303 0.6363636  0.04761905 2.578947  7   
+[10] {高级神佑复生,高级连击,高级吸血,高级偷袭,夜战}          =&gt; {price=high} 0.03030303 0.6363636  0.04761905 2.578947  7   
+[11] {高级神佑复生,高级吸血,高级偷袭,高级必杀,夜战}          =&gt; {price=high} 0.03030303 0.6363636  0.04761905 2.578947  7   
+[12] {高级神佑复生,高级连击,高级吸血,高级偷袭,高级必杀,夜战} =&gt; {price=high} 0.03030303 0.6363636  0.04761905 2.578947  7 
+</code></pre><h5 id="再来看high-的宝宝-这个价格挡位-我认为价格很高1555-到-2599-元之间--但是在技能属性上并没有追求极致换句话说就是没有特殊技能-只是打了必要的技能-来看前几列-连必吸偷夜-自不必多说-高感赫然在列-如果是普通任务全红宠-并没有人会着重考虑高级感知-高级感知的主要应用还是pk-apriori还是捕捉到了这种间接联系-即拥有高感的宝宝-很有可能是面向pk的宠物-而pk宠自然属性资质技能都要好价格要更高">再来看high 的宝宝, 这个价格挡位, 我认为价格很高,1555 到 2599 元之间 , 但是在技能属性上并没有追求极致,换句话说就是没有特殊技能, 只是打了必要的技能, 来看前几列, 连必吸偷夜 自不必多说, 高感赫然在列, 如果是普通任务全红宠, 并没有人会着重考虑高级感知, 高级感知的主要应用还是PK, apriori还是捕捉到了这种间接联系, 即拥有高感的宝宝, 很有可能是面向PK的宠物, 而PK宠自然属性资质技能都要好,价格要更高</h5>
+<h4 id="moderate">moderate</h4>
+<pre><code>inspect(head(p_mo, n = 12, by = &quot;confidence&quot;))
+
+    lhs                                 rhs              support    confidence coverage   lift     count
+[1] {高级强力,必杀,夜战}             =&gt; {price=moderate} 0.03463203 0.8000000  0.04329004 3.132203  8   
+[2] {连击,夜战,偷袭}                 =&gt; {price=moderate} 0.03030303 0.7777778  0.03896104 3.045198  7   
+[3] {连击,偷袭}                      =&gt; {price=moderate} 0.03030303 0.7000000  0.04329004 2.740678  7   
+[4] {高级神佑复生,高级吸血,壁垒击破} =&gt; {price=moderate} 0.03896104 0.6923077  0.05627706 2.710561  9   
+[5] {高级强力,必杀}                  =&gt; {price=moderate} 0.03463203 0.6666667  0.05194805 2.610169  8   
+[6] {高级感知,壁垒击破}              =&gt; {price=moderate} 0.03030303 0.6363636  0.04761905 2.491525  7   
+[7] {高级神佑复生,壁垒击破,夜战}     =&gt; {price=moderate} 0.03463203 0.6153846  0.05627706 2.409387  8   
+[8] {必杀,夜战}                      =&gt; {price=moderate} 0.06060606 0.6086957  0.09956710 2.383198 14 
+</code></pre><h5 id="这一挡位价格是-800--1555我认为依然是属于高价值宝宝一列-但是这里的结果给出了我认为比较奇怪的集合看第一集合-两个低级必杀夜战-加一个高强-算法给出有极大可能属于moderate挡位-以我以前玩过的经历认为价格要再低一些第二项也同理-这些应该在500挡位左右而且还是资质很好的情况下-当然最大的原因我认为还是数据集太小-计算拟合需要的信息不足容易给出错误的结果">这一挡位价格是, 800- 1555,我认为依然是属于高价值宝宝一列, 但是这里的结果给出了我认为比较奇怪的集合,看第一集合, 两个低级必杀夜战 加一个高强, 算法给出有极大可能属于moderate挡位, 以我以前玩过的经历认为价格要再低一些,第二项也同理 这些应该在500挡位左右,而且还是资质很好的情况下, 当然,最大的原因我认为还是数据集太小, 计算拟合需要的信息不足,容易给出错误的结果</h5>
+<h4 id="cheap">cheap</h4>
+<pre><code>inspect(head(p_ch, n = 12, by = &quot;confidence&quot;))
+
+     lhs                                                                 rhs           support    confidence coverage   lift     count
+[1]  {壁垒击破,吸血}                                                  =&gt; {price=cheap} 0.03896104 0.9000000  0.04329004 3.647368 9    
+[2]  {高级神佑复生,高级法术连击}                                      =&gt; {price=cheap} 0.03896104 0.7500000  0.05194805 3.039474 9    
+[3]  {高级神佑复生,高级法术连击,高级法术暴击}                         =&gt; {price=cheap} 0.03896104 0.7500000  0.05194805 3.039474 9    
+[4]  {高级神佑复生,高级法术连击,高级法术波动}                         =&gt; {price=cheap} 0.03463203 0.7272727  0.04761905 2.947368 8    
+[5]  {高级神佑复生,高级法术连击,高级魔之心}                           =&gt; {price=cheap} 0.03463203 0.7272727  0.04761905 2.947368 8    
+[6]  {高级神佑复生,高级法术连击,高级法术暴击,高级法术波动}            =&gt; {price=cheap} 0.03463203 0.7272727  0.04761905 2.947368 8    
+[7]  {高级神佑复生,高级法术连击,高级法术暴击,高级魔之心}              =&gt; {price=cheap} 0.03463203 0.7272727  0.04761905 2.947368 8    
+[8]  {高级神佑复生,高级法术连击,高级法术波动,高级魔之心}              =&gt; {price=cheap} 0.03030303 0.7000000  0.04329004 2.836842 7    
+[9]  {高级神佑复生,高级法术连击,高级法术暴击,高级法术波动,高级魔之心} =&gt; {price=cheap} 0.03030303 0.7000000  0.04329004 2.836842 7    
+[10] {高级驱鬼,高级法术连击}                                          =&gt; {price=cheap} 0.03463203 0.6666667  0.05194805 2.701754 8    
+[11] {高级驱鬼,高级法术暴击}                                          =&gt; {price=cheap} 0.03463203 0.6666667  0.05194805 2.701754 8    
+[12] {高级驱鬼,高级法术连击,高级法术暴击}                             =&gt; {price=cheap} 0.03463203 0.6666667  0.05194805 2.701754 8  
+</code></pre><h5 id="没有任何特殊技能的法宝宝价格不高主要是没有须弥-这与我以前看货的记忆是相符的-即使是全红的法宝宝也是如此这些宝宝的产出最大的可能就是打书失败现在很少有人会去打一只全红没有特殊技能的法宝宝最有可能的是这个场景一只多技能须弥胚子进行打书几轮上书后-快成了但是有一蓝格子打书的老板无法容忍有蓝书的存在-继续上书刚然后就悲剧掉须弥-心灰意冷的老板随意的挂了个价格在藏宝阁上但是这里竟然没有给出普通的蓝书攻宝宝我还是觉得很奇怪的这些宝宝是完美契合这个价位的">没有任何特殊技能的法宝宝价格不高(主要是没有须弥), 这与我以前看货的记忆是相符的, 即使是全红的法宝宝也是如此这些宝宝的产出最大的可能就是打书失败(现在很少有人会去打一只全红没有特殊技能的法宝宝最有可能的是这个场景:一只多技能须弥胚子进行打书,几轮上书后, 快成了,但是有一蓝格子,打书的老板无法容忍有蓝书的存在, 继续上书刚,然后就悲剧掉须弥, 心灰意冷的老板随意的挂了个价格在藏宝阁上.但是这里竟然没有给出普通的蓝书攻宝宝,我还是觉得很奇怪的,这些宝宝是完美契合这个价位的.</h5>
+<h4 id="最后总结一下-以上分析还是很简单的-之后可以对apriori算法结果基础上-做一些扩展的探索分析但是在这之前我需要更大的数据集过些天有空的话再去爬一些下来">最后总结一下, 以上分析还是很简单的, 之后可以对apriori算法结果基础上, 做一些扩展的探索分析,但是在这之前,我需要更大的数据集,过些天有空的话再去爬一些下来.</h4>
+<h5 id="最后的最后说一些题外话-梦幻是伴随我很久的游戏了-虽然没有一直坚持在玩都是断断续续的-但是我算是见证了梦幻十几年的变迁-现在的梦幻装备宝宝人物属性-越来越jp-大家都在追求实力的提升-如果比较佛的话除非你有一帮朋友都是无所谓的有些日常活动任务也有一定门槛真的太佛也不行的佛系散人真的混不下去想想十几年前的装备宝宝更现在真的差距太大了-有一个连必夜的芙蓉仙子那也算是jp宝宝了甚至在07年刚接触梦幻没多久的时候一直觉得变异的海毛虫已经是很jp了回顾现在-恍如隔世当年玩梦幻的人们随着自己年龄收入周遭社会的消费增长-消费观消费能力都已经发生翻天覆地的改变">最后的最后,说一些题外话, 梦幻是伴随我很久的游戏了, 虽然没有一直坚持在玩,都是断断续续的, 但是我算是见证了梦幻十几年的变迁, 现在的梦幻装备,宝宝,人物属性 越来越jp, 大家都在追求实力的提升, 如果比较佛的话,除非你有一帮朋友都是无所谓的(有些日常活动任务也有一定门槛,真的太佛也不行的),佛系散人真的混不下去,想想十几年前的装备宝宝更现在真的差距太大了, 有一个连必夜的芙蓉仙子,那也算是jp宝宝了,甚至,在07年刚接触梦幻没多久的时候,一直觉得变异的海毛虫已经是很JP了,回顾现在, 恍如隔世.当年玩梦幻的人们,随着自己年龄,收入周遭社会的消费增长, 消费观,消费能力都已经发生翻天覆地的改变.</h5>
+<p><img src="/%E6%A2%A6%E5%B9%BB%E5%8F%AC%E5%94%A4%E5%85%BD%E4%BB%B7%E6%A0%BC%E9%A2%84%E6%B5%8B/timg.jpg" alt="1"></p>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>
