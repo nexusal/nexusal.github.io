@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>聚类s on Dive into nexus of everything</title>
+    <link>https://nexusal.github.io/%E8%81%9A%E7%B1%BB/</link>
+    <description>Recent content in 聚类s on Dive into nexus of everything</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 10 Aug 2020 09:30:00 +0800</lastBuildDate>
+    
+	<atom:link href="https://nexusal.github.io/%E8%81%9A%E7%B1%BB/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>根据产品的工艺规格产量, 运用聚类算法划分生产线</title>
+      <link>https://nexusal.github.io/%E8%81%9A%E7%B1%BB/%E7%94%9F%E4%BA%A7%E7%BA%BF%E8%81%9A%E7%B1%BB/</link>
+      <pubDate>Mon, 10 Aug 2020 09:30:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/%E8%81%9A%E7%B1%BB/%E7%94%9F%E4%BA%A7%E7%BA%BF%E8%81%9A%E7%B1%BB/</guid>
+      <description>图片如果太小, 可以右击图片新标签查看. library(tidyverse)library(nlme)library(fable)library(tsibble)library(fpc)library(reshape2)library(purrr)library(dendextend)library(RColorBrewer)1.整理清洗数据 产看所有离散变量分布
+scheme &amp;lt;- read.csv(&amp;quot;1.csv&amp;quot;,stringsAsFactors = FALSE)apply(scheme[,c(2:11)],2,unique)$包.提[1] &amp;quot;3&amp;quot; &amp;quot;4&amp;quot; &amp;quot;18&amp;quot; &amp;quot;8&amp;quot; &amp;quot;6&amp;quot; &amp;quot;/&amp;quot; &amp;quot;5&amp;quot; &amp;quot;24&amp;quot; &amp;quot;&amp;quot; &amp;quot;32&amp;quot; &amp;quot;1&amp;quot; &amp;quot;10&amp;quot;$提.箱[1] &amp;quot;16&amp;quot; &amp;quot;1&amp;quot; &amp;quot;6&amp;quot; &amp;quot;4&amp;quot; &amp;quot;8&amp;quot; &amp;quot;10&amp;quot; &amp;quot;3&amp;quot; &amp;quot;/&amp;quot; &amp;quot;2&amp;quot; &amp;quot;&amp;quot; &amp;quot;5&amp;quot; &amp;quot;24&amp;quot; &amp;quot;18&amp;quot; &amp;quot;12&amp;quot;$纸长mm[1] &amp;quot;160&amp;quot; &amp;quot;153&amp;quot; &amp;quot;189&amp;quot; &amp;quot;133&amp;quot; &amp;quot;/&amp;quot; &amp;quot;140&amp;quot;$纸宽mm[1] &amp;quot;195&amp;quot; &amp;quot;/&amp;quot; $层数[1] &amp;quot;4&amp;quot; &amp;quot;3&amp;quot; &amp;quot;2&amp;quot; &amp;quot;/&amp;quot;$成品定量.g...[1] &amp;quot;13.5&amp;quot; &amp;quot;13&amp;quot; &amp;quot;15&amp;quot; &amp;quot;11&amp;quot; &amp;quot;/&amp;quot; &amp;quot;12&amp;quot; &amp;quot;14.</description>
+    </item>
+    
+  </channel>
+</rss>

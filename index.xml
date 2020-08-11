@@ -6,10 +6,29 @@
     <description>Recent content on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 03 Aug 2020 16:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 10 Aug 2020 09:30:00 +0800</lastBuildDate>
     
 	<atom:link href="https://nexusal.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>根据产品的工艺规格产量, 运用聚类算法划分生产线</title>
+      <link>https://nexusal.github.io/%E8%81%9A%E7%B1%BB/%E7%94%9F%E4%BA%A7%E7%BA%BF%E8%81%9A%E7%B1%BB/</link>
+      <pubDate>Mon, 10 Aug 2020 09:30:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/%E8%81%9A%E7%B1%BB/%E7%94%9F%E4%BA%A7%E7%BA%BF%E8%81%9A%E7%B1%BB/</guid>
+      <description>图片如果太小, 可以右击图片新标签查看. library(tidyverse)library(nlme)library(fable)library(tsibble)library(fpc)library(reshape2)library(purrr)library(dendextend)library(RColorBrewer)1.整理清洗数据 产看所有离散变量分布
+scheme &amp;lt;- read.csv(&amp;quot;1.csv&amp;quot;,stringsAsFactors = FALSE)apply(scheme[,c(2:11)],2,unique)$包.提[1] &amp;quot;3&amp;quot; &amp;quot;4&amp;quot; &amp;quot;18&amp;quot; &amp;quot;8&amp;quot; &amp;quot;6&amp;quot; &amp;quot;/&amp;quot; &amp;quot;5&amp;quot; &amp;quot;24&amp;quot; &amp;quot;&amp;quot; &amp;quot;32&amp;quot; &amp;quot;1&amp;quot; &amp;quot;10&amp;quot;$提.箱[1] &amp;quot;16&amp;quot; &amp;quot;1&amp;quot; &amp;quot;6&amp;quot; &amp;quot;4&amp;quot; &amp;quot;8&amp;quot; &amp;quot;10&amp;quot; &amp;quot;3&amp;quot; &amp;quot;/&amp;quot; &amp;quot;2&amp;quot; &amp;quot;&amp;quot; &amp;quot;5&amp;quot; &amp;quot;24&amp;quot; &amp;quot;18&amp;quot; &amp;quot;12&amp;quot;$纸长mm[1] &amp;quot;160&amp;quot; &amp;quot;153&amp;quot; &amp;quot;189&amp;quot; &amp;quot;133&amp;quot; &amp;quot;/&amp;quot; &amp;quot;140&amp;quot;$纸宽mm[1] &amp;quot;195&amp;quot; &amp;quot;/&amp;quot; $层数[1] &amp;quot;4&amp;quot; &amp;quot;3&amp;quot; &amp;quot;2&amp;quot; &amp;quot;/&amp;quot;$成品定量.g...[1] &amp;quot;13.5&amp;quot; &amp;quot;13&amp;quot; &amp;quot;15&amp;quot; &amp;quot;11&amp;quot; &amp;quot;/&amp;quot; &amp;quot;12&amp;quot; &amp;quot;14.</description>
+    </item>
+    
+    <item>
+      <title>SVM, e1071包</title>
+      <link>https://nexusal.github.io/svm/</link>
+      <pubDate>Thu, 06 Aug 2020 16:00:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/svm/</guid>
+      <description>拿泰坦尼克号的的数据做测试 library(e1071)m_svm &amp;lt;- svm(Survived ~ . , cost = 100, gamma = 1,data = m_titanic) R里面的SVM使用十分便捷, 开发作者对模型拟合预测的相关函数和常规的其他模型拟合函数保持了一致, 即formula,data, predict也是同理 默认选择高斯径向基函数核, 两个参数, C ,gamma 可以直接指定 根据公式里指定的响应变量的类型(factor or not), 自动选择是回归(regression) 还是分类(classification)  m_svmCall:svm(formula = Survived ~ ., data = m_titanic, cost = 100, gamma = 1)Parameters:SVM-Type: C-classification SVM-Kernel: radial cost: 100 Number of Support Vectors: 447可以直接在预测结果上计算混淆矩阵 (confusion matrix),如下: svm_pre &amp;lt;- predict(m_svm, m_titanic[,-1])confusionMatrix(m_titanic[,1],svm_pre)#####Confusion Matrix and StatisticsReferencePrediction 0 10 536 131 59 283Accuracy : 0.</description>
+    </item>
     
     <item>
       <title>应用apriori算法, 分析不同技能组合和价格之间的联系</title>

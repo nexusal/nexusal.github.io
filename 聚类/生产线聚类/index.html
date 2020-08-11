@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>根据产品的工艺规格产量, 运用聚类算法划分生产线 &middot; Dive into nexus of everything</title>
+  <meta name="description" content="数据集较小" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://nexusal.github.io/"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://nexusal.github.io/">Home</a> </li>
+        <li><a href="./about.html"> About </a></li>
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>根据产品的工艺规格产量, 运用聚类算法划分生产线</h1>
+  <time datetime=2020-08-10T09:30:00&#43;0800 class="post-date">Mon, Aug 10, 2020</time>
+  <h4 id="图片如果太小-可以右击图片新标签查看">图片如果太小, 可以右击图片新标签查看.</h4>
+<pre><code>library(tidyverse)
+library(nlme)
+library(fable)
+library(tsibble)
+library(fpc)
+library(reshape2)
+library(purrr)
+library(dendextend)
+library(RColorBrewer)
+</code></pre><h2 id="1整理清洗数据">1.整理清洗数据</h2>
+<p>产看所有离散变量分布</p>
+<pre><code>scheme &lt;- read.csv(&quot;1.csv&quot;,stringsAsFactors = FALSE)
+apply(scheme[,c(2:11)],2,unique)
+</code></pre><pre><code>$包.提
+ [1] &quot;3&quot;  &quot;4&quot;  &quot;18&quot; &quot;8&quot;  &quot;6&quot;  &quot;/&quot;  &quot;5&quot;  &quot;24&quot; &quot;&quot;   &quot;32&quot; &quot;1&quot;  &quot;10&quot;
+
+$提.箱
+ [1] &quot;16&quot; &quot;1&quot;  &quot;6&quot;  &quot;4&quot;  &quot;8&quot;  &quot;10&quot; &quot;3&quot;  &quot;/&quot;  &quot;2&quot;  &quot;&quot;   &quot;5&quot;  &quot;24&quot; &quot;18&quot; &quot;12&quot;
+
+$纸长mm
+[1] &quot;160&quot; &quot;153&quot; &quot;189&quot; &quot;133&quot; &quot;/&quot;   &quot;140&quot;
+
+$纸宽mm
+[1] &quot;195&quot; &quot;/&quot;  
+
+$层数
+[1] &quot;4&quot; &quot;3&quot; &quot;2&quot; &quot;/&quot;
+
+$成品定量.g...
+[1] &quot;13.5&quot; &quot;13&quot;   &quot;15&quot;   &quot;11&quot;   &quot;/&quot;    &quot;12&quot;   &quot;14.5&quot;
+
+$抽.包
+ [1] &quot;90&quot;  &quot;150&quot; &quot;100&quot; &quot;200&quot; &quot;180&quot; &quot;160&quot; &quot;130&quot; &quot;/&quot;   &quot;140&quot; &quot;136&quot; &quot;120&quot; &quot;126&quot; &quot;110&quot; &quot;108&quot; &quot;132&quot;
+
+$压花形式
+ [1] &quot; 羽毛压花（加双边）&quot;                                                     
+ [2] &quot;  羽毛压花（加双边）&quot;                                                    
+ [3] &quot;双压线&quot;                                                                  
+ [4] &quot;   羽毛压花（加双边）&quot;                                                   
+ [5] &quot;压线&quot;                                                                    
+ [6] &quot;/&quot;                                                                       
+ [7] &quot;星星月亮花纹（中间层先过小点压花，三层一起过日月星压花）&quot;                
+ [8] &quot; 星星月亮花纹（中间层先过小点压花，三层一起过日月星压花） &quot;              
+ [9] &quot;星星月亮花纹（中间层先过小点压花，三层一起过日月星压花） &quot;               
+[10] &quot;压花工艺：上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）&quot;  
+[11] &quot;上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）&quot;            
+[12] &quot;上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色&quot;              
+[13] &quot;月亮花纹（三层一起过日月星压花）&quot;                                        
+[14] &quot;双压线 &quot;                                                                 
+[15] &quot;上两层压郁金香细点纹+下１层压小点纹（无色）&quot;                             
+[16] &quot;上两层压郁金香细点纹+下１层压小点纹（有色）&quot;                             
+[17] &quot;上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）。&quot;          
+[18] &quot;压花工艺：上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）。&quot;
+
+$加香
+[1] &quot;／&quot;                                   &quot;白桃味香（1.17g/小包）&quot;               &quot;/&quot;                                   
+[4] &quot;雏菊淡香&quot;                             &quot;雏菊淡香，浓度为：8%&quot;                 &quot;加香（雏菊香水，浓度为：8%，德之馨）&quot;
+
+$原料
+ [1] &quot;13.8g 软抽面巾原纸&quot;                &quot;13.0g 超韧软抽原纸&quot;                &quot;13.8g 软抽面巾原纸3400mm&quot;         
+ [4] &quot;&quot;                                  &quot;15.0g 软抽原纸&quot;                    &quot;11.0g软抽原纸&quot;                    
+ [7] &quot;/&quot;                                 &quot;12.0g软抽原纸&quot;                     &quot;15.3g/㎡软抽立体美纸原纸&quot;         
+[10] &quot;15.3g/㎡立体美纸面巾原纸&quot;          &quot;13g 超韧软抽原纸&quot;                  &quot;13.3克婴儿软抽&quot;                   
+[13] &quot;13.3g/㎡ 婴儿纸面巾（毛巾柔）原纸&quot;
+</code></pre><p>开始修改</p>
+<pre><code>my_col &lt;- colnames(scheme[,c(12:59)]) %&gt;% str_extract_all(pattern = &quot;\\d+&quot;) %&gt;% 
+  sapply(FUN = function(x) {a &lt;- paste0(x,collapse = &quot;-&quot;)}) %&gt;% unlist()
+
+
+colnames(scheme)[c(12:59)] &lt;- my_col
+
+colnames(scheme)[c(1:11)]&lt;- c(&quot;p-lables&quot;,&quot;per_batch&quot;,&quot;per_box&quot;,&quot;length/mm&quot;,&quot;width/mm&quot;,&quot;layers&quot;,&quot;p_weight_g/m2&quot;,&quot;pieces_per_one&quot;,&quot;decoration&quot;,&quot;scent&quot;,&quot;materials&quot;)
+</code></pre><p>第一个,包每提,我默认为 斜杠和空值都不进行以提的形式进行外包装,设置为0</p>
+<pre><code>scheme$per_batch[scheme$per_batch == &quot;&quot; | scheme$per_batch == &quot;/&quot;] &lt;- 0
+</code></pre><p>第二个,同理</p>
+<pre><code>scheme$per_box[scheme$per_box == &quot;&quot; | scheme$per_box == &quot;/&quot;] &lt;- 0
+</code></pre><p>发现压花形式,格式有点问题</p>
+<pre><code>scheme_1$decoration &lt;- str_remove_all(scheme_1$decoration, pattern = &quot;\\s+&quot;)
+scheme_1$decoration[scheme_1$decoration == &quot;上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色&quot;] &lt;- '上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）'
+scheme_1$decoration[scheme_1$decoration == &quot;压花工艺：上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）。&quot;] &lt;- '压花工艺：上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）'
+scheme_1$decoration[scheme_1$decoration == &quot;上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）。&quot;] &lt;- '上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）'
+scheme_1$decoration[scheme_1$decoration == &quot;压花工艺：上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）&quot;] &lt;- '上2层压郁金香细点纹图案+下１层压小点纹，上胶复合成型（无色）'
+</code></pre><p>默认斜杆为无香味, 设为0, 雏菊的产品全部修改为雏菊淡香, 方便后续聚类</p>
+<pre><code>scheme_1$scent[scheme_1$scent == &quot;／&quot; | scheme_1$scent == &quot;/&quot;] &lt;- 0
+scheme_1$scent[str_detect(scheme_1$scent, &quot;雏菊&quot;)] &lt;- &quot;雏菊淡香&quot;
+</code></pre><p>有些变量其实是同一种</p>
+<pre><code>scheme_2$materials[scheme_2$materials == &quot;13.0g 超韧软抽原纸&quot;] &lt;- &quot;13g 超韧软抽原纸&quot;
+</code></pre><p>剩下的就是时间序列里的NA值处理, 先看看NA的分布如何</p>
+<pre><code>apply(scheme_2,2,function(x) return(sum(is.na(x))) )  ### 几乎产量的每一列都有缺失值
+</code></pre><p>几乎产量的每一列都有缺失值<br>
+均值替换掉</p>
+<pre><code>for (i in 1:107) {
+  m.l &lt;- is.na(scheme_2[i,])
+  if(any(m.l)){
+    location &lt;- which(m.l)
+    a &lt;- mean(scheme_2[i,c(12:59)][!is.na(scheme_2[i,c(12:59)])])
+    scheme_2[i,location] &lt;- a
+  }else{}
+}
+</code></pre><p>先绘制所有产品的产量的时间序列图</p>
+<pre><code>to_plot &lt;- scheme_2[,c(1,12:59)] %&gt;% gather(key = &quot;months&quot;,value = &quot;yield&quot;,-&quot;p-lables&quot;)
+colnames(to_plot)[1] &lt;- &quot;p_labels&quot;
+to_plot$p_labels &lt;- as.factor(to_plot$p_labels)
+
+
+to_plot$months &lt;- yearmonth(to_plot$months)
+</code></pre><pre><code>ggplot(to_plot,aes(months, yield)) +
+  geom_line(color = &quot;firebrick&quot;)+
+  theme(axis.text.x = element_text(size = 8))+
+  facet_wrap(~p_labels,scales = &quot;free&quot;)
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/1.png" alt="2"></p>
+<p>产量波动性很大, 看起来很随机</p>
+<h2 id="2模型拟合">2.模型拟合</h2>
+<h3 id="211-自相关性检验">2.1.1 自相关性检验</h3>
+<p>在这之前先检验一下,变化是否真的是随机无序的,以下是LBQ( Ljung-Box )检验的公式
+<img src="/%E8%81%9A%E7%B1%BB/Ljung-Box.png" alt="2"></p>
+<h4 id="其中">其中:</h4>
+<ul>
+<li><strong>原假设</strong>:数据个体间是<strong>独立分布的</strong>,因此任意数据跨度之间都<strong>不存在相关性</strong></li>
+<li><strong>备择假设</strong>:   数据不是独立分布, 他们<strong>呈现一定时间跨度的相关性</strong>.</li>
+<li><strong>n</strong>:  样本容量, 在这里代表我们一个产品产量的所有的<strong>数据数量</strong>,即48; <strong>r</strong> 代表样本的自相关性， 下标的<strong>k</strong>代表<strong>时间跨度</strong>。所以<strong>h</strong>代表你选择了几种时间跨度</li>
+<li>这种方法也用于评估arima模型拟合后的残差是否具有独立随机性。</li>
+</ul>
+<p>选取lag，即滞后参数, 选择最大滞后性为1年,即取值范围 0-12</p>
+<pre><code>lags &lt;- 1:12
+independence &lt;- vector(mode = &quot;list&quot; ,length = 107)
+for (i in unique(to_plot$p_labels)) {
+  pv &lt;- c()
+  for (k in lags) {
+    test &lt;- Box.test(to_plot[to_plot$p_labels == i,]$yield,type = &quot;Ljung-Box&quot;,lag = k)
+    pv &lt;- append(pv,test$p.value)
+  }
+  independence[[as.numeric(i)]] &lt;- pv
+}
+</code></pre><pre><code>ind &lt;- as.data.frame(independence) ##为了后续得到有命名的向量,选择转化为数据框
+colnames(ind) &lt;- 1:107
+signum &lt;- apply(ind,2, function(x) return(sum(x &lt; 0.05)))
+
+sum(signum != 0)
+[1] 19
+
+signum[signum &gt; 0] #返回所有出现过自相关性的产品
+
+4  5 40 42  43  45  46  47  48  58  62  66  68  74  79  89  93  94 103 
+1  1  9  3   5   2   9   9   1   2   1   1   6  11   9   1   4   4   1 
+</code></pre><p>总计有19个产品产量再不同时间跨度上存在自相关性, 考虑到我们总共进行了 12*107 = 1284 次检验, 有必要对P值进行矫正</p>
+<pre><code>padj &lt;- p.adjust(unlist(independence),method = &quot;BH&quot;)
+summary(padj)
+</code></pre><table>
+<thead>
+<tr>
+<th align="center">Min.</th>
+<th align="center">1st Qu.</th>
+<th align="center">Median</th>
+<th align="center">Mean</th>
+<th align="center">3rd Qu.</th>
+<th align="center">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">0.6526</td>
+<td align="center">0.8841</td>
+<td align="center">0.9596</td>
+<td align="center">0.9292</td>
+<td align="center">0.9721</td>
+<td align="center">0.9997</td>
+</tr>
+</tbody>
+</table>
+<p>显示最小值为0.6526, 即所有的检验都不存在显著性,即接受原假设, 每个数据点都是<strong>独立分布的</strong>,因此所有产品、任意数据跨度之间都<strong>不存在相关性</strong></p>
+<h3 id="212-autocorrelation-function-acf-自相关性可视化">2.1.2 Autocorrelation Function ACF 自相关性可视化</h3>
+<p>和平时做的线性相关性类似， 我们对时间序列数据也可以作相似的分析，以下ACF计算公式 给出<strong>k</strong>个时间跨度的相关性系数。
+<img src="/%E8%81%9A%E7%B1%BB/acf.png" alt="2"></p>
+<ul>
+<li><strong>y</strong>: 代表<strong>t</strong>时刻的实际值</li>
+<li><strong>T</strong>: 总时间长度</li>
+<li><strong>r</strong>: 即相关性
+选定最大的滞后数为24</li>
+</ul>
+<pre><code>test &lt;- filter(to_plot,p_labels == 1) %&gt;% select(months, yield) %&gt;% as_tsibble()
+ggAcf(test,lag.max = 24,type = &quot;correlation&quot;)
+</code></pre><p>图中的蓝色线划定了显著性的阈值，只有超过蓝色线的才会被认为是有显著相关的，否则都为白噪值。
+<img src="/%E8%81%9A%E7%B1%BB/test_acf.png" alt="2"></p>
+<h3 id="22-几种常见的建模方法">2.2 几种常见的建模方法</h3>
+<p>鉴于我们的数据没有明显的趋势、季节性波动，对于后续的模型选择也相应产生了。</p>
+<h4 id="221-snaive-方法">2.2.1 snaive 方法</h4>
+<p><img src="/%E8%81%9A%E7%B1%BB/snaive.png" alt="2"></p>
+<ul>
+<li>snaive 方法默认下一次的预测值为离现在最近的实际值。</li>
+</ul>
+<pre><code>test &lt;- filter(to_plot,p_labels == 1) %&gt;% select(months, yield) %&gt;% as_tsibble()
+</code></pre><h4 id="222-移动平均法">2.2.2 移动平均法</h4>
+<p><img src="/%E8%81%9A%E7%B1%BB/movingaverage.png" alt="2"></p>
+<ul>
+<li>过去n个记录数的平均数, 以此预测下个记录值, P为过去各个相应值</li>
+</ul>
+<h4 id="以1号产品为例进行绘图-这里选择移动5次平均">以1号产品为例进行绘图， 这里选择移动5次平均</h4>
+<pre><code>t.plot &lt;- test %&gt;%
+  mutate(
+    `5-MA` = slide_dbl(yield, mean, .size = 5, .align = &quot;center&quot;)
+  )
+
+t.plot %&gt;%
+  autoplot(yield) +
+  autolayer(t.plot, `5-MA`, color='red') +
+  xlab(&quot;months&quot;) + ylab(&quot;yield&quot;) +
+  ggtitle(&quot;Total yield of every month&quot;) +
+  guides(colour=guide_legend(title=&quot;series&quot;))
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/MA.png" alt="2">
+实际上,这种方法适合于趋势稳定不变的时间序列,而对于有规律波动的数据,则总是显得慢一步.</p>
+<h4 id="223-drift-model-漂流模型">2.2.3 drift model (漂流模型)</h4>
+<p>建立在snaive方法上，叠加了额外的上升或下降趋势，随时间改变的量称之为 drift。
+<img src="/%E8%81%9A%E7%B1%BB/drift.png" alt="2"></p>
+<ul>
+<li><strong>h</strong>: 距离现在h个单位的时间点</li>
+<li><strong>T</strong>： 距离现在最近的一个实际值</li>
+</ul>
+<h4 id="224-比较几种方法的优劣">2.2.4 比较几种方法的优劣</h4>
+<pre><code>options(scipen = 100)  # 不需要科学计数法
+</code></pre><p>先拟合三个模型，均值， 漂流，snaive</p>
+<pre><code>train &lt;- test[c(1:36),]
+train &lt;- as.ts(train)
+train1 &lt;- meanf(train,h=12) # 均值回归
+train2 &lt;- rwf(train,h=12) # drift mode
+train3 &lt;- snaive(train,h=12) 
+</code></pre><p>补充一个STL（ Seasonal and Trend decomposition using Loess ）模型，他可以处理任何形式的波动性</p>
+<pre><code>train4 &lt;- train %&gt;% 
+  stl(t.window=6, s.window=&quot;periodic&quot;, robust=TRUE)
+
+train4 %&gt;% seasadj() %&gt;% naive() %&gt;%
+  autoplot() + ylab(&quot;New orders index&quot;) 
+</code></pre><p>未来预测值的波动范围
+<img src="/%E8%81%9A%E7%B1%BB/seasonalforecast.png" alt="2"></p>
+<p>附加了随机性波动的预测线，并且与未来一年实际值对比</p>
+<pre><code>train4 %&gt;% forecast(method=&quot;naive&quot;) %&gt;%
+  autoplot() + ylab(&quot;New orders index&quot;)
+</code></pre><p>附加了随机性波动的预测线，并且与未来一年实际值对比
+<img src="/%E8%81%9A%E7%B1%BB/stl-random.png" alt="2"></p>
+<p>讲一下各个指标的含义</p>
+<ul>
+<li>RMSE: <img src="/%E8%81%9A%E7%B1%BB/RMSE.png" alt="2"> 均方根误差，即是预测的误差的标准差</li>
+<li>MAE ：<img src="/%E8%81%9A%E7%B1%BB/MAE.png" alt="2">平均绝对误差 ,预测误差绝对值的平均值</li>
+<li>MPE : <img src="/%E8%81%9A%E7%B1%BB/mpe.png" alt="2"> 平均百分比误差，误差相对于实际值的百分比的均值</li>
+<li>MAPE : <img src="/%E8%81%9A%E7%B1%BB/MAPE.png" alt="2"> 平均绝对百分比误差，误差相对于实际值的百分比绝对值的均值</li>
+<li>MASE : <img src="/%E8%81%9A%E7%B1%BB/MASE.png" alt="2"> 平均绝对比例误差， 可将每个误差与基准平均误差进行比较。</li>
+</ul>
+<pre><code>exam &lt;- test[c(37:48),] %&gt;% as.ts()
+
+compare &lt;- rbind(accuracy(train1, exam)[2,c(2:6)],
+		 accuracy(train2, exam)[2,c(2:6)],
+		 accuracy(train3, exam)[2,c(2:6)],
+		 accuracy(forecast(myfit,h = 12),exam)[2,c(2:6)])
+
+rownames(compare) &lt;- c(&quot;mean&quot;,&quot;rwf&quot;,&quot;snaive&quot;,&quot;stl&quot;)
+
+compare
+</code></pre><table>
+<thead>
+<tr>
+<th align="center">models</th>
+<th align="center">RMSE</th>
+<th align="center">MAE</th>
+<th align="center">MPE</th>
+<th align="center">MAPE</th>
+<th align="center">MASE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">mean</td>
+<td align="center">44946.29</td>
+<td align="center">38499.87</td>
+<td align="center">-11.13586</td>
+<td align="center">16.17173</td>
+<td align="center">0.8210163</td>
+</tr>
+<tr>
+<td align="center">rwf</td>
+<td align="center">45338.03</td>
+<td align="center">38757.22</td>
+<td align="center">-11.44093</td>
+<td align="center">16.30762</td>
+<td align="center">0.8265042</td>
+</tr>
+<tr>
+<td align="center">snaive</td>
+<td align="center">64852.16</td>
+<td align="center">59501.12</td>
+<td align="center">-11.91404</td>
+<td align="center">23.83847</td>
+<td align="center">1.2688714</td>
+</tr>
+<tr>
+<td align="center">stl</td>
+<td align="center">51974.20</td>
+<td align="center">46519.70</td>
+<td align="center">-11.13905</td>
+<td align="center">18.82737</td>
+<td align="center">0.9920405</td>
+</tr>
+</tbody>
+</table>
+<p>就上面表格来说, 均值预测 和 rwf 模型返回较好的结果</p>
+<h2 id="225-arima-model">2.2.5 arima model</h2>
+<p>arima 函数在R中其实会自动选择最适的参数,并且最小化AIC,MLE 来获得最好的arima model. 但是也可以用过手动选择最适的参数来选择,我们的样本量较小,我可以手动选择.arima模型拟合的流程图如下:
+<img src="/%E8%81%9A%E7%B1%BB/arimaflowchart.png" alt="2"></p>
+<h3 id="2251-ar-autoregression-model">2.2.5.1 AR Autoregression model</h3>
+<p>即对于数据本身的线性回归,在时间序列中他的拟合方程如下:
+<img src="/%E8%81%9A%E7%B1%BB/AR.png" alt="2"></p>
+<ul>
+<li><strong>ε</strong>  是白噪值,赋予拟合值一定的随机波动性</li>
+<li><strong>ϕ</strong>  是过去相应值的系数</li>
+<li><strong>c</strong>  可以理解为一个基础值,<strong>c</strong>如果为正值,则整个趋势向上的,反之,则向下</li>
+<li>改变ϕ,将会改变预测值的波动模式.</li>
+<li>我们称以上这个为<strong>AR(p) model</strong>, p个序列的AR自回归模型</li>
+</ul>
+<h3 id="2252-moving-average-models">2.2.5.2 Moving average models</h3>
+<p>移动平均前面已经提到过, 但是在这里有很大的不同,更多是建立在预测误差的移动平均,所以这里称之为移动误差模型更为合适,公式如下:
+<img src="/%E8%81%9A%E7%B1%BB/e_ma.png" alt="2"></p>
+<ul>
+<li>ε为白噪值.</li>
+<li>θ为系数</li>
+<li>c为基础值</li>
+<li>这个模型称之为<strong>MA(q) model</strong>, q个序列的移动平均模型</li>
+<li>这个模型可以理解为以θ为权重的过去误差移动预测</li>
+</ul>
+<h3 id="2253-non-seasonal-arima-models">2.2.5.3 Non-seasonal ARIMA models</h3>
+<p>我们把上面两种模型结合在一起,就得到了不包括季节波动的ARIMA model,他的全称为:  <strong>AutoRegressive Integrated Moving Average.</strong>
+完整的模型公式就是加在一起, 如下:
+<img src="/%E8%81%9A%E7%B1%BB/arima.png" alt="2">
+正如之前讲过的, 在模型拟合时,我们需要指定一个自回归模型的  <strong>p</strong>  参数, 还有移动平均模型的 <strong>q</strong> 参数,参数 <strong>d</strong> 为1的话,代表每个数据点相较于上一个数据点差值,为 2 的话,那就是差值的差值,成为二阶差值,d 值大小代表阶数. 综上,我们称之为 <strong>ARIMA( p,d ,q ) model</strong>。对于参数的选择方法，可以绘制之前提到过的ACF、PACF，确定 p、q 参数， 如果不放心，也可以采用遍历的方法选出最适参数。<br>
+下面以一号产品为例，进行拟合一遍：</p>
+<pre><code>test &lt;- filter(to_plot,p_labels == 1) %&gt;% select(months, yield) %&gt;% as_tsibble()
+test %&gt;% stl(s.window='periodic') %&gt;% seasadj() -&gt; eeadj
+</code></pre><pre><code>eeadj %&gt;% diff() %&gt;% ggtsdisplay(main=&quot;&quot;)
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/%E5%8F%82%E6%95%B0%E9%80%89%E6%8B%A9.png" alt="2"></p>
+<pre><code>fit &lt;- Arima(eeadj, order=c(3,2,1))
+</code></pre><p>在这之前, 通过遍历所有参数组合, 来寻找最适的参数</p>
+<pre><code>t.arima &lt;- accuracy(forecast(fit,h= 12),exam)[2,] %&gt;% as.data.frame() %&gt;% t()
+for (i in 1:64) {
+  fit &lt;- Arima(eeadj, order=para_l[i,] %&gt;% as.numeric())
+  t.arima &lt;- rbind(t.arima ,accuracy(forecast(fit,h= 12),exam)[2,])
+}
+</code></pre><h3 id="226-预测所有产品下个月的产量">2.2.6 预测所有产品下个月的产量</h3>
+<p>构建参数列表</p>
+<pre><code>para_l &lt;- data.frame(a = sample(0:3,300,replace = TRUE),
+                     b = sample(0:3,300,replace = TRUE),
+                     c = sample(0:3,300,replace = TRUE)) %&gt;%
+  count(a,b,c) %&gt;% select(a,b,c)
+</code></pre><pre><code>l.aic &lt;- c()
+
+m.next &lt;- c()
+
+#   遍历所有的产品, 这里直接用AIC 来比较模型拟合效果
+for (i in 7:105) {
+  test &lt;- filter(to_plot,p_labels == i) %&gt;% select(months, yield) %&gt;% as_tsibble()
+  test %&gt;% stl(s.window='periodic') %&gt;% seasadj() -&gt; eeadj
+  for (k in 1:64) {
+    fit &lt;- Arima(eeadj, order=c(para_l[k,] %&gt;% as.numeric()))
+    l.aic &lt;- append(l.aic, fit$aic)
+  }
+  l &lt;- which(l.aic == min(l.aic))
+  fit &lt;- Arima(eeadj, order=c(para_l[l,] %&gt;% as.numeric()))
+  point &lt;- forecast(fit,h = 1) 
+  id &lt;- point$mean %&gt;% as.numeric()
+  m.next &lt;- append(m.next,id)
+  l.aic &lt;- c()
+}
+</code></pre><h2 id="3----聚类">3.    聚类</h2>
+<p>在预测的下个月产量参与到聚类之前，有必要对产量数做一些处理，因为聚类是基于记录点之间的距离远近而进行的， 所以如果是两个产量都很高的产品他们倾向于聚集在一起，这样某些生产线的负荷将会非常高，而有些一些却非常空闲，这显然不是我们想要的， 我们的目的是将高产的和低产的聚集在一起，让各个生产线之间的负荷平衡一些。<br>
+这里我们手动计算基于标准差的标准化,即<strong>z</strong>分数, 然后绝对化每个数据点减去中位数的差值, 这样确保了部分低值和部分高值之间的距离拉近</p>
+<pre><code>m.next &lt;- abs((m.next-mean(m.next)))/sd(m.next)
+ 
+m.next &lt;- abs(m.next - median(m.next)) 
+</code></pre><h3 id="31-gower-的距离度量基础上进行聚类">3.1 gower 的距离度量基础上进行聚类</h3>
+<p>Gower distance 是应用于分类变量较好的距离度量算法,他基于每个个体间的平均偏异性( Partial dissimilarities ), 每个偏异值在[0,1]之间, 在应用计算之前, 会进行标准化处理, 公式如下:
+<img src="/%E8%81%9A%E7%B1%BB/gower.png" alt="2"></p>
+<ul>
+<li>
+<p><strong>f</strong> 代表不同变量, <strong>ij</strong> 代表任意两个产品之间的比较, 根据他们所有变量距离的均值来表示总体的距离.</p>
+</li>
+<li>
+<p>具体来讲, Gower算法又区分了,数值变量和分类变量的不同算法,其中数值变量计算公式:</p>
+</li>
+</ul>
+<p><img src="/%E8%81%9A%E7%B1%BB/numfeature.png" alt="2"></p>
+<ul>
+<li>
+<p>Rf是所有个体这个变量范围的最大值</p>
+</li>
+<li>
+<p>对于分类变量, Gower对于两个产品的不同分类变量值返回 1 , 否则返回0;</p>
+</li>
+</ul>
+<pre><code>library(cluster)
+
+to.dist &lt;- apply(scheme_2[,c(2:4,6:11)],2,as.factor) %&gt;% as.data.frame(stringsAsFactors = TRUE)
+</code></pre><p>把转化后的数据合并到我们的数据中去，参与后续的聚类。</p>
+<pre><code>to.dist$next_m &lt;- m.next
+</code></pre><p>得到距离矩阵</p>
+<pre><code>gower.dist &lt;- daisy(to.dist, metric = c(&quot;gower&quot;))
+</code></pre><h3 id="32-divisive-clustering">3.2 DIVISIVE CLUSTERING</h3>
+<pre><code>divisive.clust &lt;- diana(as.matrix(gower.dist), 
+                        diss = TRUE, keep.diss = TRUE)
+plot(divisive.clust, main = &quot;Divisive&quot;)
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/divisive.png" alt="2"></p>
+<h3 id="33-complete-linkage-完全连接">3.3 complete linkage 完全连接</h3>
+<pre><code>aggl.clust.c &lt;- hclust(gower.dist, method = &quot;complete&quot;)
+plot(aggl.clust.c,
+     main = &quot;Agglomerative, complete linkages&quot;)
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/complete.png" alt="2"></p>
+<h3 id="34--查看聚类效果">3.4  查看聚类效果</h3>
+<p>定义一个返回聚类效果的函数</p>
+<pre><code>cstats.table &lt;- function(dist, tree, k) {
+ clust.assess &lt;- c(&quot;cluster.number&quot;,&quot;n&quot;,&quot;within.cluster.ss&quot;,&quot;average.within&quot;,&quot;average.between&quot;,
+                    &quot;wb.ratio&quot;,&quot;dunn2&quot;,&quot;avg.silwidth&quot;)
+  clust.size &lt;- c(&quot;cluster.size&quot;)
+  stats.names &lt;- c()
+  row.clust &lt;- c()
+  output.stats &lt;- matrix(ncol = k, nrow = length(clust.assess))
+  cluster.sizes &lt;- matrix(ncol = k, nrow = k)
+  for(i in c(1:k)){
+    row.clust[i] &lt;- paste(&quot;Cluster-&quot;, i, &quot; size&quot;)
+  }
+  for(i in c(2:k)){
+    stats.names[i] &lt;- paste(&quot;Test&quot;, i-1)
+    
+    for(j in seq_along(clust.assess)){
+      output.stats[j, i] &lt;- unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.assess])[j]
+      
+    }
+    
+    for(d in 1:k) {
+      cluster.sizes[d, i] &lt;- unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.size])[d]
+      dim(cluster.sizes[d, i]) &lt;- c(length(cluster.sizes[i]), 1)
+      cluster.sizes[d, i]
+      
+    }
+  }
+  output.stats.df &lt;- data.frame(output.stats)
+  cluster.sizes &lt;- data.frame(cluster.sizes)
+  cluster.sizes[is.na(cluster.sizes)] &lt;- 0
+  rows.all &lt;- c(clust.assess, row.clust)
+  # rownames(output.stats.df) &lt;- clust.assess
+  output &lt;- rbind(output.stats.df, cluster.sizes)[ ,-1]
+  colnames(output) &lt;- stats.names[2:k]
+  rownames(output) &lt;- rows.all
+  is.num &lt;- sapply(output, is.numeric)
+  output[is.num] &lt;- lapply(output[is.num], round, 2)
+  output
+}
+</code></pre><h4 id="divisive">divisive</h4>
+<pre><code>stats.df.divisive &lt;- cstats.table(gower.dist, divisive.clust, 7)
+stats.df.divisive
+
+----------------------------------------------------------------
+                  Test 1 Test 2 Test 3 Test 4 Test 5 Test 6
+cluster.number      2.00   3.00   4.00   5.00   6.00   7.00
+n                 107.00 107.00 107.00 107.00 107.00 107.00
+within.cluster.ss  16.35  13.56  11.73  11.05  10.54   8.01
+average.within      0.51   0.47   0.43   0.42   0.42   0.37
+average.between     0.77   0.76   0.75   0.74   0.74   0.73
+wb.ratio            0.66   0.61   0.58   0.57   0.56   0.51
+dunn2               1.33   1.37   1.36   1.35   1.35   1.32
+avg.silwidth        0.33   0.36   0.36   0.35   0.35   0.41
+Cluster- 1  size   20.00  20.00  20.00  20.00  20.00  20.00
+Cluster- 2  size   87.00  76.00  69.00  66.00  66.00  53.00
+Cluster- 3  size    0.00  11.00  11.00  11.00  10.00  10.00
+Cluster- 4  size    0.00   0.00   7.00   3.00   3.00   3.00
+Cluster- 5  size    0.00   0.00   0.00   7.00   1.00   1.00
+Cluster- 6  size    0.00   0.00   0.00   0.00   7.00   7.00
+Cluster- 7  size    0.00   0.00   0.00   0.00   0.00  13.00
+</code></pre><h4 id="agglomerative">Agglomerative</h4>
+<pre><code>stats.df.aggl &lt;- cstats.table(gower.dist, aggl.clust.c, 7) 
+stats.df.aggl
+-----------------------------------------------------------------
+                  Test 1 Test 2 Test 3 Test 4 Test 5 Test 6
+cluster.number      2.00   3.00   4.00   5.00   6.00   7.00
+n                 107.00 107.00 107.00 107.00 107.00 107.00
+within.cluster.ss  16.27  13.48  11.69  11.02  10.51   8.36
+average.within      0.51   0.46   0.43   0.42   0.42   0.38
+average.between     0.77   0.76   0.75   0.74   0.74   0.72
+wb.ratio            0.66   0.61   0.58   0.57   0.56   0.52
+dunn2               1.34   1.36   1.34   1.34   1.34   1.26
+avg.silwidth        0.34   0.36   0.36   0.35   0.36   0.39
+Cluster- 1  size   19.00  19.00  19.00  19.00  19.00  19.00
+Cluster- 2  size   88.00  77.00  70.00  67.00  67.00  51.00
+Cluster- 3  size    0.00  11.00  11.00  11.00  10.00  10.00
+Cluster- 4  size    0.00   0.00   7.00   3.00   3.00   3.00
+Cluster- 5  size    0.00   0.00   0.00   7.00   1.00   1.00
+Cluster- 6  size    0.00   0.00   0.00   0.00   7.00   7.00
+Cluster- 7  size    0.00   0.00   0.00   0.00   0.00  16.00
+</code></pre><p>elbow 原则, 即当类内平方和随着类增加却逐渐放缓减少的趋势,如果存在一个较好的转折点,就选取那个点.</p>
+<pre><code>ggplot(data = data.frame(t(cstats.table(gower.dist, divisive.clust, 15))), 
+       aes(x=cluster.number, y=within.cluster.ss)) + 
+  geom_point()+
+  geom_line()+
+  ggtitle(&quot;Divisive clustering&quot;) +
+  labs(x = &quot;Num&quot;, y = &quot;SS&quot;) +
+  theme(plot.title = element_text(hjust = 0.5))#暂定 7
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/elbow-1.png" alt="2"></p>
+<pre><code>ggplot(data = data.frame(t(cstats.table(gower.dist, aggl.clust.c, 15))), 
+       aes(x=cluster.number, y=within.cluster.ss)) + 
+  geom_point()+
+  geom_line()+
+  ggtitle(&quot;Agglomerative clustering&quot;) +
+  labs(x = &quot;Num&quot;, y = &quot;SS&quot;) +
+  theme(plot.title = element_text(hjust = 0.5))  # 暂定7 
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/elbow-2.png" alt="2"></p>
+<h3 id="silhouette">Silhouette</h3>
+<h4 id="divisive-1">divisive</h4>
+<pre><code>ggplot(data = data.frame(t(cstats.table(gower.dist, divisive.clust, 15))), 
+       aes(x=cluster.number, y=avg.silwidth)) + 
+  geom_point()+
+  geom_line()+
+  ggtitle(&quot;Divisive clustering&quot;) +
+  labs(x = &quot;Num&quot;, y = &quot;Average silhouette width&quot;) +
+  theme(plot.title = element_text(hjust = 0.5)) ## 7 是高点
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/Silhouette-1.png" alt="2"></p>
+<h4 id="agglomerative-1">Agglomerative</h4>
+<pre><code>ggplot(data = data.frame(t(cstats.table(gower.dist, aggl.clust.c, 15))), 
+       aes(x=cluster.number, y=avg.silwidth)) + 
+  geom_point()+
+  geom_line()+
+  ggtitle(&quot;Agglomerative clustering&quot;) +
+  labs(x = &quot;Num&quot;, y = &quot;Average silhouette width&quot;) +
+  theme(plot.title = element_text(hjust = 0.5)) #  7是高点
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/Silhouette-2.png" alt="2"></p>
+<h3 id="35-绘制聚类树">3.5 绘制聚类树</h3>
+<pre><code>dendro &lt;- as.dendrogram(aggl.clust.c)
+dendro.col &lt;- dendro %&gt;%
+  set(&quot;branches_k_color&quot;, k = 7, value =  brewer.pal(7,&quot;Set1&quot;)) %&gt;%
+  set(&quot;branches_lwd&quot;, 1) %&gt;%
+  set(&quot;labels_colors&quot;, 
+      value = c(&quot;darkslategray&quot;)) %&gt;% 
+  set(&quot;labels_cex&quot;, 0.8)
+ggd1 &lt;- as.ggdend(dendro.col)
+ggplot(ggd1, theme = theme_minimal()) +
+  labs(x = &quot;Num. observations&quot;, y = &quot;Height&quot;, title = &quot;Dendrogram, k = 7&quot;)
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/tree.png" alt="2">
+可以看到30号产品为所有分类为斜杆的产品,出于分析方便, 这边没有把他剔除, 这边独自成为了一类,后续切割树也是一样的结果,</p>
+<pre><code>ggplot(ggd1, labels = T) + 
+  scale_y_reverse(expand = c(0.2, 0)) +
+  coord_polar(theta=&quot;x&quot;)
+
+</code></pre><p><img src="/%E8%81%9A%E7%B1%BB/tree_circle.png" alt="2"></p>
+<p>以上两幅图 ,实际上是一样的</p>
+<pre><code>clust.num &lt;- cutree(aggl.clust.c, k = 7)
+
+df_done &lt;- cbind(scheme_2,clust.num)
+
+select(df_done,p_labels,scent,clust.num) %&gt;% filter(scent != 0)
+</code></pre><table>
+<thead>
+<tr>
+<th align="center">p_labels</th>
+<th align="center">scent</th>
+<th align="center">clust.num</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">6</td>
+<td align="center">白桃味香（1.17g/小包）</td>
+<td align="center">1</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">37</td>
+<td align="center">雏菊淡香</td>
+<td align="center">6</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">39</td>
+<td align="center">雏菊淡香</td>
+<td align="center">4</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">42</td>
+<td align="center">雏菊淡香</td>
+<td align="center">6</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">53</td>
+<td align="center">雏菊淡香</td>
+<td align="center">6</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>加香产品被分配到了3个类, 根据gower的距离矩阵, 重新划分1或4号产品的类</p>
+<pre><code>diss  &lt;- as.matrix(gower.dist)
+
+diss[39,][order(diss[39,])] %&gt;% names() %&gt;% as.numeric() -&gt; dis_39
+
+clust.num[dis_39]
+</code></pre><p>与最近的加香生产线距离过远, 试着重新分配1</p>
+<pre><code>diss[6,][order(diss[6,])] %&gt;% names() %&gt;% as.numeric() -&gt; dis_6
+
+clust.num[dis_6]
+</code></pre><p>6号距离6类产品较近, 把属于1类的6号产品分配到第六类</p>
+<p>此外, 30号产品可能是个异常记录, 剔除后, 总共为6类, 即6个生产线</p>
+<pre><code>diss[30,][order(diss[30,])] %&gt;% names() %&gt;% as.numeric() -&gt; dis_30
+clust.num[dis_30]
+
+table(clust.num)
+# 每个类的个数
+clust.num
+ 1  2  3  4  5  6  7 
+19 51 10  3  1  7 16 
+</code></pre><h2 id="4总结">4.总结</h2>
+<h3 id="1号生产线">1号生产线</h3>
+<pre><code>#产量 :
+filter(df_done,clust.num == 1) %&gt;% select(next_m) %&gt;% sum()
+[1] 3431571
+filter(df_done,clust.num == 1) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</li>
+</ul>
+<h3 id="2号生产线">2号生产线</h3>
+<pre><code>#产量 :
+filter(df_done,clust.num == 2) %&gt;% select(next_m) %&gt;% sum()
+[1] 3373884
+
+filter(df_done,clust.num == 2) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>5,27,29,33,34,40,43,44,45,47,48,49,50,51,52,54,55,56,57,58,59,62,68,70,71,72,73</li>
+<li>74,78,79,80,81,82,83,84,85,86,87,88,89,90,92,95,97,100,101,102,103,104,105,106</li>
+</ul>
+<h3 id="3号生产线">3号生产线</h3>
+<pre><code>#产量 :
+filter(df_done,clust.num == 3) %&gt;% select(next_m) %&gt;% sum()
+[1] 1072380
+
+filter(df_done,clust.num == 3) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>21,22,24,25,26,28,31,69,91,93</li>
+</ul>
+<h3 id="4号生产线">4号生产线</h3>
+<pre><code>产量:
+filter(df_done,clust.num == 4) %&gt;% select(next_m) %&gt;% sum()
+[1] 499927.3
+
+filter(df_done,clust.num == 4) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>23,39,46</li>
+</ul>
+<h3 id="6-生产线">6 生产线</h3>
+<pre><code>产量:
+filter(df_done,clust.num == 6) %&gt;% select(next_m) %&gt;% sum()
+[1] 974860.2
+
+filter(df_done,clust.num == 6) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>32,35,37,38,41,42,53</li>
+</ul>
+<h3 id="7-生产线">7 生产线</h3>
+<pre><code>产量:
+filter(df_done,clust.num == 7) %&gt;% select(next_m) %&gt;% sum()
+[1] 396822.4
+
+filter(df_done,clust.num == 7) %&gt;% .[,1] %&gt;% paste0(collapse = &quot;,&quot;)
+</code></pre><p>产品编号 :</p>
+<ul>
+<li>36,60,61,63,64,65,66,67,75,76,77,94,96,98,99,107</li>
+</ul>
+<h4 id="给出表格">给出表格</h4>
+<table>
+<thead>
+<tr>
+<th align="center">生产线</th>
+<th align="center">下个月产量负荷</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">3431571</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">3373884</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">1072380</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">499927.3</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">974860.2</td>
+<td></td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">396822.4</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

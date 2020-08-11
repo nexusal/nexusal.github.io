@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.73.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>SVM, e1071包 &middot; Dive into nexus of everything</title>
+  <meta name="description" content="在R中初试SVM" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://nexusal.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+</head>
+
+  <body class=" ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://nexusal.github.io/"><h1>Dive into nexus of everything</h1></a>
+      <p class="lead">
+       Welcome 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://nexusal.github.io/">Home</a> </li>
+        <li><a href="./about.html"> About </a></li>
+      </ul>
+    </nav>
+
+    <p>&copy; 2020. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>SVM, e1071包</h1>
+  <time datetime=2020-08-06T16:00:00&#43;0800 class="post-date">Thu, Aug 6, 2020</time>
+  <h4 id="拿泰坦尼克号的的数据做测试">拿泰坦尼克号的的数据做测试</h4>
+<pre><code>library(e1071)
+</code></pre><pre><code>m_svm &lt;- svm(Survived ~ . , cost = 100, gamma = 1,data = m_titanic)
+</code></pre><ul>
+<li>R里面的SVM使用十分便捷, 开发作者对模型拟合预测的相关函数和常规的其他模型拟合函数保持了一致, 即formula,data, predict也是同理</li>
+<li>默认选择高斯径向基函数核, 两个参数, C ,gamma 可以直接指定</li>
+<li>根据公式里指定的响应变量的类型(factor or not), 自动选择是回归(regression) 还是分类(classification)</li>
+</ul>
+<pre><code>m_svm
+
+Call:
+svm(formula = Survived ~ ., data = m_titanic, cost = 100, gamma = 1)
+
+
+Parameters:
+   SVM-Type:  C-classification 
+ SVM-Kernel:  radial 
+       cost:  100 
+
+Number of Support Vectors:  447
+
+</code></pre><h4 id="可以直接在预测结果上计算混淆矩阵-confusion-matrix如下">可以直接在预测结果上计算混淆矩阵 (confusion matrix),如下:</h4>
+<pre><code>svm_pre &lt;- predict(m_svm, m_titanic[,-1])
+
+confusionMatrix(m_titanic[,1],svm_pre)
+#####
+Confusion Matrix and Statistics
+
+          Reference
+Prediction   0   1
+         0 536  13
+         1  59 283
+                                          
+               Accuracy : 0.9192          
+                 95% CI : (0.8993, 0.9362)
+    No Information Rate : 0.6678          
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+                                          
+                  Kappa : 0.8247          
+                                          
+ Mcnemar's Test P-Value : 1.137e-07       
+                                          
+            Sensitivity : 0.9008          
+            Specificity : 0.9561          
+         Pos Pred Value : 0.9763          
+         Neg Pred Value : 0.8275          
+             Prevalence : 0.6678          
+         Detection Rate : 0.6016          
+   Detection Prevalence : 0.6162          
+      Balanced Accuracy : 0.9285          
+                                          
+       'Positive' Class : 0
+</code></pre><h4 id="对于svm来说选择最适参数必不可少-e1071包也提供了自动进行这一步的函数即-tune">对于SVM来说,选择最适参数必不可少, e1071包也提供了自动进行这一步的函数,即 tune</h4>
+<pre><code>tune.svm(Survived ~ .,data = m_titanic, gamma  = c(0.2,0.3,0.6,0.9),cost = 2,
+         tunecontrol = tune.control(sampling = &quot;fix&quot;))
+#######
+Parameter tuning of ‘svm’:
+
+- sampling method: fixed training/validation set 
+
+- best parameters:
+ gamma cost
+   0.2    2
+
+- best performance: 0.1919192 
+</code></pre><h4 id="本来想使用交叉验证-但是-tunecontrol-函数如果指定sampling--cross-则会报错-可能数据集有点问题">本来想使用交叉验证, 但是 tune.control 函数如果指定sampling = &ldquo;cross&rdquo; 则会报错, 可能数据集有点问题.</h4>
+
+</div>
+
+
+    </main>
+
+    
+      
+    
+  </body>
+</html>

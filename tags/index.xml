@@ -6,15 +6,51 @@
     <description>Recent content in Tags on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 03 Aug 2020 16:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 10 Aug 2020 09:30:00 +0800</lastBuildDate>
     
 	<atom:link href="https://nexusal.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>clustering</title>
+      <link>https://nexusal.github.io/tags/clustering/</link>
+      <pubDate>Mon, 10 Aug 2020 09:30:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/tags/clustering/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>time sereies</title>
+      <link>https://nexusal.github.io/tags/time-sereies/</link>
+      <pubDate>Mon, 10 Aug 2020 09:30:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/tags/time-sereies/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>unsupervised learning</title>
+      <link>https://nexusal.github.io/tags/unsupervised-learning/</link>
+      <pubDate>Mon, 10 Aug 2020 09:30:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/tags/unsupervised-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>freewriting</title>
+      <link>https://nexusal.github.io/tags/freewriting/</link>
+      <pubDate>Thu, 06 Aug 2020 16:00:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/tags/freewriting/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>machine learning</title>
       <link>https://nexusal.github.io/tags/machine-learning/</link>
-      <pubDate>Mon, 03 Aug 2020 16:00:00 +0800</pubDate>
+      <pubDate>Thu, 06 Aug 2020 16:00:00 +0800</pubDate>
       
       <guid>https://nexusal.github.io/tags/machine-learning/</guid>
       <description></description>

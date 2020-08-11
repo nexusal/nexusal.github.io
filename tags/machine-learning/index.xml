@@ -6,10 +6,19 @@
     <description>Recent content in machine learning on Dive into nexus of everything</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 03 Aug 2020 16:00:00 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 06 Aug 2020 16:00:00 +0800</lastBuildDate>
     
 	<atom:link href="https://nexusal.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>SVM, e1071包</title>
+      <link>https://nexusal.github.io/svm/</link>
+      <pubDate>Thu, 06 Aug 2020 16:00:00 +0800</pubDate>
+      
+      <guid>https://nexusal.github.io/svm/</guid>
+      <description>拿泰坦尼克号的的数据做测试 library(e1071)m_svm &amp;lt;- svm(Survived ~ . , cost = 100, gamma = 1,data = m_titanic) R里面的SVM使用十分便捷, 开发作者对模型拟合预测的相关函数和常规的其他模型拟合函数保持了一致, 即formula,data, predict也是同理 默认选择高斯径向基函数核, 两个参数, C ,gamma 可以直接指定 根据公式里指定的响应变量的类型(factor or not), 自动选择是回归(regression) 还是分类(classification)  m_svmCall:svm(formula = Survived ~ ., data = m_titanic, cost = 100, gamma = 1)Parameters:SVM-Type: C-classification SVM-Kernel: radial cost: 100 Number of Support Vectors: 447可以直接在预测结果上计算混淆矩阵 (confusion matrix),如下: svm_pre &amp;lt;- predict(m_svm, m_titanic[,-1])confusionMatrix(m_titanic[,1],svm_pre)#####Confusion Matrix and StatisticsReferencePrediction 0 10 536 131 59 283Accuracy : 0.</description>
+    </item>
     
     <item>
       <title>应用apriori算法, 分析不同技能组合和价格之间的联系</title>
